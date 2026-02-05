@@ -9,31 +9,31 @@ namespace LaunchPad.Controllers
     [Route("api/[controller]")]
     public class BooksController : ControllerBase
     {
-        private readonly AppDbContext _context;
-        public BooksController(AppDbContext context)
+        private readonly Services.IBookRepository _bookRepository;
+        public BooksController(Services.IBookRepository bookRepository)
         {
-            _context = context;
+            _bookRepository = bookRepository;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Book>>> GetBooks()
         {
-            return await _context.Books.ToListAsync();
+            var books = await _bookRepository.GetAll();
+            return Ok(books);
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Book>> GetBook(int id)
         {
-            var book = await _context.Books.FindAsync(id);
+            var book = await _bookRepository.GetById(id);
             if (book == null) return NotFound();
-            return book;
+            return Ok(book);
         }
 
         [HttpPost]
         public async Task<ActionResult<Book>> CreateBook(Book book)
         {
-            _context.Books.Add(book);
-            await _context.SaveChangesAsync();
+            await _bookRepository.Add(book);
             return CreatedAtAction(nameof(GetBook), new { id = book.Id }, book);
         }
 
@@ -41,28 +41,16 @@ namespace LaunchPad.Controllers
         public async Task<IActionResult> UpdateBook(int id, Book book)
         {
             if (id != book.Id) return BadRequest();
-            _context.Entry(book).State = EntityState.Modified;
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!_context.Books.Any(e => e.Id == id))
-                    return NotFound();
-                else
-                    throw;
-            }
+            await _bookRepository.Update(book);
             return NoContent();
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteBook(int id)
         {
-            var book = await _context.Books.FindAsync(id);
+            var book = await _bookRepository.GetById(id);
             if (book == null) return NotFound();
-            _context.Books.Remove(book);
-            await _context.SaveChangesAsync();
+            await _bookRepository.Delete(id);
             return NoContent();
         }
     }
