@@ -1,5 +1,6 @@
 using LaunchPad.Data;
 using LaunchPad.Models;
+using LaunchPad.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,8 +10,8 @@ namespace LaunchPad.Controllers
     [Route("api/[controller]")]
     public class BooksController : ControllerBase
     {
-        private readonly Services.IBookRepository _bookRepository;
-        public BooksController(Services.IBookRepository bookRepository)
+        private readonly IBookRepository _bookRepository;
+        public BooksController(IBookRepository bookRepository)
         {
             _bookRepository = bookRepository;
         }
