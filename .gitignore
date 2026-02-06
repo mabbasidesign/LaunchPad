@@ -40,3 +40,27 @@ Migrations/
 # NuGet Packages
 *.nupkg
 packages/
+
+# Publish output
+publish/
+app.zip
+
+# Local database files
+*.mdf
+*.ldf
+
+# LunchPad generated/temporary files
+*.bak
+*.tmp
+*.cache
+*.db
+*.sqlite
+
+# Azure deployment logs
+LogFiles/
+
+# Ignore secrets
+secrets.json
+
+# Ignore LaunchPad assembly info cache
+obj/**/*.cache
