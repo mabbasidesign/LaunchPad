@@ -9,23 +9,25 @@ param sqlDbName string = 'launchpaddb'
 param redisName string = 'launchpad-redis'
 param storageName string = 'launchpadstorage'
 param appInsightsName string = 'launchpad-ai'
+param sqlAdminUser string
+param sqlAdminPassword string
 
 // Modules (to be created separately)
-module appService 'appService.bicep' = {
-  name: 'appService'
+module appService 'appService.bicep' = if (true) {
+  name: appServiceName
   params: {
-    name: appServiceName
-    location: location
-  }
+  name: appServiceName
+  location: location
+}
 }
 
-// module sqlDb 'sqlDatabase.bicep' = if (true) {
-//   name: sqlDbName
-//   params: {
-//     location: location
-//     sqlServerName: sqlServerName
-//   }
-// }
+module sqlDb 'sqlDatabase.bicep' = if (true) {
+  name: sqlDbName
+  params: {
+    location: location
+    sqlServerName: sqlServerName
+  }
+}
 
 // module redis 'redis.bicep' = if (true) {
 //   name: redisName
