@@ -21,11 +21,13 @@ module appService 'appService.bicep' = if (true) {
 }
 }
 
-module sqlDb 'sqlDatabase.bicep' = if (true) {
-  name: sqlDbName
+module sqlDb 'sqlDatabase.bicep' = {
+  name: sqlServerName
   params: {
+    name: sqlServerName
     location: location
-    sqlServerName: sqlServerName
+    administratorLogin: sqlAdminUser
+    administratorLoginPassword: sqlAdminPassword
   }
 }
 
