@@ -3,6 +3,27 @@
 bin/
 obj/
 
+# Build artifacts
+*.dll
+*.pdb
+*.exe
+
+# Publish output
+publish/
+publish.zip
+
+# App settings (local dev)
+appsettings.Development.json
+
+# SQL artifacts
+*.mdf
+*.ldf
+
+# Temporary files
+*.tmp
+*.cache
+*.bak
+
 # User-specific files
 *.user
 *.suo

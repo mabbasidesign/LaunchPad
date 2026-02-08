@@ -1,7 +1,10 @@
 // sqlDatabase.bicep
+
 param name string
+param databaseName string
 param location string
 param administratorLogin string
+@secure()
 param administratorLoginPassword string
 
 resource sqlServer 'Microsoft.Sql/servers@2022-02-01-preview' = {
@@ -15,12 +18,12 @@ resource sqlServer 'Microsoft.Sql/servers@2022-02-01-preview' = {
 }
 
 resource sqlDb 'Microsoft.Sql/servers/databases@2022-02-01-preview' = {
-  name: '${name}/${name}db'
+  name: '${name}/${databaseName}'
   location: location
   properties: {
     collation: 'SQL_Latin1_General_CP1_CI_AS'
     maxSizeBytes: 2147483648
-    sampleName: 'AdventureWorksLT'
+    createMode: 'Default'
   }
   dependsOn: [sqlServer]
 }

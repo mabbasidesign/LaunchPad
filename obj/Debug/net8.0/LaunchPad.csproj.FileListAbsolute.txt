@@ -145,3 +145,15 @@ C:\Users\mabba\Desktop\App\LaunchPad\obj\Debug\net8.0\refint\LaunchPad.dll
 C:\Users\mabba\Desktop\App\LaunchPad\obj\Debug\net8.0\LaunchPad.pdb
 C:\Users\mabba\Desktop\App\LaunchPad\obj\Debug\net8.0\LaunchPad.genruntimeconfig.cache
 C:\Users\mabba\Desktop\App\LaunchPad\obj\Debug\net8.0\ref\LaunchPad.dll
+C:\Users\mabba\Desktop\App\LaunchPad\bin\Debug\net8.0\publish\publish\web.config
+C:\Users\mabba\Desktop\App\LaunchPad\bin\Debug\net8.0\publish\web.config
+C:\Users\mabba\Desktop\App\LaunchPad\bin\Debug\net8.0\publish\appsettings.Development.json
+C:\Users\mabba\Desktop\App\LaunchPad\bin\Debug\net8.0\publish\appsettings.json
+C:\Users\mabba\Desktop\App\LaunchPad\bin\Debug\net8.0\publish\LaunchPad.deps.json
+C:\Users\mabba\Desktop\App\LaunchPad\bin\Debug\net8.0\publish\LaunchPad.runtimeconfig.json
+C:\Users\mabba\Desktop\App\LaunchPad\bin\Debug\net8.0\publish\LaunchPad.staticwebassets.endpoints.json
+C:\Users\mabba\Desktop\App\LaunchPad\bin\Debug\net8.0\publish\publish\appsettings.Development.json
+C:\Users\mabba\Desktop\App\LaunchPad\bin\Debug\net8.0\publish\publish\appsettings.json
+C:\Users\mabba\Desktop\App\LaunchPad\bin\Debug\net8.0\publish\publish\LaunchPad.deps.json
+C:\Users\mabba\Desktop\App\LaunchPad\bin\Debug\net8.0\publish\publish\LaunchPad.runtimeconfig.json
+C:\Users\mabba\Desktop\App\LaunchPad\bin\Debug\net8.0\publish\publish\LaunchPad.staticwebassets.endpoints.json
