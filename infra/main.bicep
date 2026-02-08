@@ -2,7 +2,7 @@
 // Entry point for deploying all Azure resources for LaunchPad app
 
 // Parameters
-param location string = resourceGroup().location
+param location string = 'canadawest'
 param appServiceName string = 'launchpad-appsvc'
 param sqlServerName string = 'launchpad-sqlsrv'
 param sqlDbName string = 'launchpaddb'
@@ -15,7 +15,7 @@ param sqlAdminPassword string
 param appServiceSku string = 'B1'
 
 // Modules (to be created separately)
-module appService 'appService.bicep' = if (true) {
+module appService 'appService.bicep' = {
   name: appServiceName
   params: {
     name: appServiceName
@@ -37,21 +37,21 @@ module sqlDb 'sqlDatabase.bicep' = {
   }
 }
 
-// module redis 'redis.bicep' = if (true) {
+// module redis 'redis.bicep' = {
 //   name: redisName
 //   params: {
 //     location: location
 //   }
 // }
 
-// module storage 'storage.bicep' = if (true) {
+// module storage 'storage.bicep' = {
 //   name: storageName
 //   params: {
 //     location: location
 //   }
 // }
 
-// module appInsights 'appInsights.bicep' = if (true) {
+// module appInsights 'appInsights.bicep' = {
 //   name: appInsightsName
 //   params: {
 //     location: location

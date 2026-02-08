@@ -25,7 +25,6 @@ resource sqlDb 'Microsoft.Sql/servers/databases@2022-02-01-preview' = {
     maxSizeBytes: 2147483648
     createMode: 'Default'
   }
-  dependsOn: [sqlServer]
 }
 
 output sqlServerName string = sqlServer.name
