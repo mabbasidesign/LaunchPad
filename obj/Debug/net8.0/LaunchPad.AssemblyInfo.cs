@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("LaunchPad")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c5dc8858411c6a5079c9eb85273ce4ba0b5c2f90")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e6efb509d7436c8ceaf135ffdc1aa2f86823f937")]
 [assembly: System.Reflection.AssemblyProductAttribute("LaunchPad")]
 [assembly: System.Reflection.AssemblyTitleAttribute("LaunchPad")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

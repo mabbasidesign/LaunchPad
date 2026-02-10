@@ -2,7 +2,7 @@
 
 param name string
 param location string
-param skuName string = 'B1'
+param skuName string = 'F1'
 param sqlServerName string
 param sqlDbName string
 

@@ -2,13 +2,10 @@
 // Entry point for deploying all Azure resources for LaunchPad app
 
 // Parameters
-param location string = 'canadawest'
-param appServiceName string = 'launchpad-appsvc'
+param location string
+param appServiceName string
 param sqlServerName string = 'launchpad-sqlsrv'
 param sqlDbName string = 'launchpaddb'
-param redisName string = 'launchpad-redis'
-param storageName string = 'launchpadstorage'
-param appInsightsName string = 'launchpad-ai'
 param sqlAdminUser string
 @secure()
 param sqlAdminPassword string
