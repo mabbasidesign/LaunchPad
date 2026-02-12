@@ -9,7 +9,7 @@ param sqlDbName string = 'launchpaddb'
 param sqlAdminUser string
 @secure()
 param sqlAdminPassword string
-param appServiceSku string = 'B1'
+param appServiceSku string = 'F1'
 
 // Modules (to be created separately)
 module appService 'appService.bicep' = {
