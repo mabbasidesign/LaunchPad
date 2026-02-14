@@ -13,12 +13,17 @@ Log.Logger = new LoggerConfiguration()
 var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSerilog();
 
-// Add Redis distributed cache
-builder.Services.AddStackExchangeRedisCache(options =>
+// Add API versioning
+builder.Services.AddApiVersioning(options =>
 {
-    options.Configuration = "localhost:6379"; // Update with Redis server address if needed
-    options.InstanceName = "LaunchPad_";
+    options.DefaultApiVersion = new Microsoft.AspNetCore.Mvc.ApiVersion(1, 0);
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.ReportApiVersions = true;
 });
+
+// Add Redis distributed cache
+// Use in-memory cache for local development
+builder.Services.AddDistributedMemoryCache();
 
 // Add rate limiting
 builder.Services.AddRateLimiter(options =>

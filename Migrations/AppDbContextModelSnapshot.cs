@@ -16,7 +16,7 @@ namespace LaunchPad.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.23")
+                .HasAnnotation("ProductVersion", "8.0.24")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -47,6 +47,9 @@ namespace LaunchPad.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("Year")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.ToTable("Books");
@@ -59,7 +62,8 @@ namespace LaunchPad.Migrations
                             ISBN = "978-0201616224",
                             Price = 42.99m,
                             Stock = 10,
-                            Title = "The Pragmatic Programmer"
+                            Title = "The Pragmatic Programmer",
+                            Year = 0
                         },
                         new
                         {
@@ -68,7 +72,8 @@ namespace LaunchPad.Migrations
                             ISBN = "978-0132350884",
                             Price = 37.99m,
                             Stock = 8,
-                            Title = "Clean Code"
+                            Title = "Clean Code",
+                            Year = 0
                         },
                         new
                         {
@@ -77,7 +82,8 @@ namespace LaunchPad.Migrations
                             ISBN = "978-0201633610",
                             Price = 54.99m,
                             Stock = 5,
-                            Title = "Design Patterns"
+                            Title = "Design Patterns",
+                            Year = 0
                         });
                 });
 #pragma warning restore 612, 618

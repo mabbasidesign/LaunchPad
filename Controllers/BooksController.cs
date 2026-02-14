@@ -8,8 +8,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LaunchPad.Controllers
 {
+    using Microsoft.AspNetCore.Mvc;
+
     [ApiController]
-    [Route("api/[controller]")]
+    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     public class BooksController : ControllerBase
     {
         private readonly IBookRepository _bookRepository;
