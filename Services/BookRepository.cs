@@ -15,14 +15,16 @@ namespace LaunchPad.Services
             _context = context;
         }
 
+
         public async Task<IEnumerable<Book>> GetAll()
         {
-            return await _context.Books.ToListAsync();
+            return await _context.Books.AsNoTracking().ToListAsync();
         }
+
 
         public async Task<Book> GetById(int id)
         {
-            return await _context.Books.FindAsync(id);
+            return await _context.Books.AsNoTracking().FirstOrDefaultAsync(b => b.Id == id);
         }
 
         public async Task Add(Book book)
