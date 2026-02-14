@@ -19,7 +19,9 @@ namespace LaunchPad.Services
         }
         public async Task<IEnumerable<Book>> GetAll()
         {
-            var cacheKey = "books_all";
+            // return await _context.Books.AsNoTracking().ToListAsync();
+
+             var cacheKey = "books_all";
             var cachedBooks = await _cache.GetStringAsync(cacheKey);
             if (!string.IsNullOrEmpty(cachedBooks))
             {

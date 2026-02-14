@@ -1,13 +1,12 @@
-namespace LaunchPad.Models
+namespace LaunchPad.DTO
 {
-    public class Book
+    // Data Transfer Object for Book
+    public class BookDto
     {
         public int Id { get; set; }
         public string Title { get; set; } = string.Empty;
         public string Author { get; set; } = string.Empty;
-        public string ISBN { get; set; } = string.Empty;
-        public decimal Price { get; set; }
-        public int Stock { get; set; }
         public int Year { get; set; }
+        // Add more fields as needed, but keep it minimal for API consumers
     }
 }

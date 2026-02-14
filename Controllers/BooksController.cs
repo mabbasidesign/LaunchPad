@@ -1,5 +1,7 @@
+using LaunchPad.DTO;
 using LaunchPad.Data;
 using LaunchPad.Models;
+using System.Linq;
 using LaunchPad.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -24,7 +26,14 @@ namespace LaunchPad.Controllers
         {
             _logger.LogInformation("Getting all books");
             var books = await _bookRepository.GetAll();
-            return Ok(books);
+            var bookDtos = books.Select(b => new BookDto
+            {
+                Id = b.Id,
+                Title = b.Title,
+                Author = b.Author,
+                Year = b.Year
+            });
+            return Ok(bookDtos);
         }
 
         [HttpGet("{id}")]
@@ -37,16 +46,36 @@ namespace LaunchPad.Controllers
                 _logger.LogWarning("Book with id {BookId} not found", id);
                 return NotFound();
             }
-            return Ok(book);
+            var bookDto = new BookDto
+            {
+                Id = book.Id,
+                Title = book.Title,
+                Author = book.Author,
+                Year = book.Year
+            };
+            return Ok(bookDto);
         }
 
         [HttpPost]
         public async Task<ActionResult<Book>> CreateBook(Book book)
         {
             _logger.LogInformation("Creating a new book");
-            await _bookRepository.Add(book);
-            _logger.LogInformation("Book created with id {BookId}", book.Id);
-            return CreatedAtAction(nameof(GetBook), new { id = book.Id }, book);
+            var newBook = new Book
+            {
+                Title = book.Title,
+                Author = book.Author,
+                Year = book.Year
+            };
+            await _bookRepository.Add(newBook);
+            _logger.LogInformation("Book created with id {BookId}", newBook.Id);
+            var bookDto = new BookDto
+            {
+                Id = newBook.Id,
+                Title = newBook.Title,
+                Author = newBook.Author,
+                Year = newBook.Year
+            };
+            return CreatedAtAction(nameof(GetBook), new { id = newBook.Id }, bookDto);
         }
 
         [HttpPut("{id}")]

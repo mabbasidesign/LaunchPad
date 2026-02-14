@@ -16,7 +16,7 @@ builder.Host.UseSerilog();
 // Add Redis distributed cache
 builder.Services.AddStackExchangeRedisCache(options =>
 {
-    options.Configuration = "localhost:6379"; // Update with your Redis server address if needed
+    options.Configuration = "localhost:6379"; // Update with Redis server address if needed
     options.InstanceName = "LaunchPad_";
 });
 
