@@ -3,7 +3,7 @@
 
 // Parameters
 param location string
-param appServiceName string
+param appServiceName string = 'launchpad-appsvc'
 param sqlServerName string = 'launchpad-sqlsrv'
 param sqlDbName string = 'launchpaddb'
 param sqlAdminUser string

@@ -12,8 +12,11 @@ obj/
 publish/
 publish.zip
 
+
 # App settings (local dev)
 appsettings.Development.json
+appsettings.json
+Properties/launchSettings.json
 
 # SQL artifacts
 *.mdf
