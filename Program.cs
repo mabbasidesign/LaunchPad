@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using System.Threading.RateLimiting;
 using Serilog;
 
-
 // Configure Serilog
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -13,6 +12,14 @@ Log.Logger = new LoggerConfiguration()
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSerilog();
+
+// Add Redis distributed cache
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = "localhost:6379"; // Update with your Redis server address if needed
+    options.InstanceName = "LaunchPad_";
+});
+
 // Add rate limiting
 builder.Services.AddRateLimiter(options =>
 {
@@ -39,11 +46,10 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-
 var app = builder.Build();
+
 // Use rate limiting middleware
 app.UseRateLimiter();
-
 
 // Configure the HTTP request pipeline.
 app.UseSwagger();

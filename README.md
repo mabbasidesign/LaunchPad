@@ -8,10 +8,11 @@ LaunchPad is a scalable, high-performance .NET API designed with modern best pra
 - Dependency injection
 - Advanced rate limiting and throttling
 - Circuit breaker and bulkhead isolation (Polly)
+- Distributed caching with Redis (IDistributedCache)
 - Response caching and batching
 - Efficient serialization (System.Text.Json)
 - Entity Framework Core optimizations
-- Structured logging and diagnostics
+- Structured logging with Serilog (console and daily rolling file, retention policy)
 - Health checks and monitoring
 - Domain-Driven Design (DDD) principles
 - SQL performance tuning
@@ -40,19 +41,21 @@ LaunchPad is a scalable, high-performance .NET API designed with modern best pra
 
 ## Middleware
 - Rate limiting and throttling
+- Distributed Redis caching for API responses
 - Response compression
 - Exception handling and ProblemDetails
 - Health checks
 
 ## Getting Started
 1. Clone the repository
-2. Configure SQL credentials in `appsettings.json`
+2. Configure SQL credentials and Redis connection string in `appsettings.json`
 3. Run migrations: `dotnet ef database update`
 4. Start the API: `dotnet run`
 
 ## Deployment
 - Use Bicep files in `infra/` for Azure resource provisioning
 - Deploy with: `az deployment group create ...`
+- Ensure Redis and logging storage are provisioned for production scenarios
 
 ## Azure Bicep Infrastructure
 
