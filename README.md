@@ -174,6 +174,48 @@ The database is initialized with sample books:
 2. "Clean Code" by Robert C. Martin
 3. "Design Patterns" by Erich Gamma et al.
 
+## Input Validation
+
+All API endpoints use **Data Annotations** for input validation. Invalid requests are rejected with HTTP 400 Bad Request and detailed error messages.
+
+### Book Validation
+- **Title**: Required, 1-200 characters
+- **Author**: Required, 1-200 characters
+- **ISBN**: Optional, 10-20 characters, valid ISBN format
+- **Price**: Required, 0.01-10000
+- **Stock**: Required, 0-100000
+- **Year**: Required, 1000-2100
+
+### User Validation
+- **Username**: Required, 3-50 characters, alphanumeric + underscore/hyphen only
+- **PasswordHash**: Required (auto-generated)
+
+### Registration (RegisterRequestDto) Validation
+- **Username**: Required, 3-50 characters, alphanumeric + underscore/hyphen only
+- **Password**: Required, 8-128 characters
+  - Must contain uppercase letter (A-Z)
+  - Must contain lowercase letter (a-z)
+  - Must contain digit (0-9)
+  - Must contain special character (@$!%*?&)
+  - Strong password enforcement on registration
+
+### Login (LoginRequestDto) Validation
+- **Username**: Required, 3-50 characters
+- **Password**: Required, 8-128 characters
+
+### Validation Error Response Example
+```json
+{
+  "errors": {
+    "Title": ["Title is required."],
+    "Price": ["Price must be between 0.01 and 10000."]
+  },
+  "type": "https://tools.ietf.org/html/rfc7231#section-6.4.1",
+  "title": "One or more validation errors occurred.",
+  "status": 400
+}
+```
+
 ## Logging
 
 - **Logger**: Serilog with structured logging
@@ -182,7 +224,12 @@ The database is initialized with sample books:
   - Daily rolling file logs (retention: 30 days)
   - Location: `C:/LaunchpadLog/{DayName}/log-.txt`
 - **Log Levels**: Information, Warning, Error
-- **Structured Logging**: Used in BooksController for better debugging
+- **Structured Logging**: Used throughout for better debugging
+- **Events Logged**:
+  - User registration and login attempts
+  - Book CRUD operations
+  - Validation errors
+  - Authorization failures
 
 ## Getting Started
 1. Clone the repository

@@ -61,13 +61,21 @@ namespace LaunchPad.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Book>> CreateBook(Book book)
+        public async Task<ActionResult<Book>> CreateBook([FromBody] Book book)
         {
-            _logger.LogInformation("Creating a new book");
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Invalid book data for creation: {Errors}", ModelState.Values.SelectMany(v => v.Errors));
+                return BadRequest(ModelState);
+            }
+            _logger.LogInformation("Creating a new book: {Title}", book.Title);
             var newBook = new Book
             {
                 Title = book.Title,
                 Author = book.Author,
+                ISBN = book.ISBN,
+                Price = book.Price,
+                Stock = book.Stock,
                 Year = book.Year
             };
             await _bookRepository.Add(newBook);
@@ -83,12 +91,17 @@ namespace LaunchPad.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateBook(int id, Book book)
+        public async Task<IActionResult> UpdateBook(int id, [FromBody] Book book)
         {
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Invalid book data for update: {Errors}", ModelState.Values.SelectMany(v => v.Errors));
+                return BadRequest(ModelState);
+            }
             if (id != book.Id)
             {
                 _logger.LogWarning("Book id mismatch: route id {RouteId}, book id {BookId}", id, book.Id);
-                return BadRequest();
+                return BadRequest("Book ID mismatch.");
             }
             _logger.LogInformation("Updating book with id {BookId}", id);
             await _bookRepository.Update(book);
