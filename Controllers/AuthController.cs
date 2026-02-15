@@ -24,22 +24,30 @@ namespace LaunchPad.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
         {
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            _logger.LogInformation("[LOGIN] Request started. Username: {Username}", request.Username);
+
             if (!ModelState.IsValid)
             {
-                _logger.LogWarning("Invalid login request");
+                _logger.LogWarning("[LOGIN] Validation failed. Duration: {Duration}ms. Errors: {Errors}", 
+                    stopwatch.ElapsedMilliseconds, 
+                    string.Join(", ", ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage))));
                 return BadRequest(ModelState);
             }
 
             var user = await _authService.ValidateUserAsync(request.Username, request.Password);
             if (user == null)
             {
-                _logger.LogWarning("Login failed for user: {Username}", request.Username);
+                stopwatch.Stop();
+                _logger.LogWarning("[LOGIN] Authentication failed for user {Username}. Duration: {Duration}ms. Reason: Invalid credentials", 
+                    request.Username, stopwatch.ElapsedMilliseconds);
                 return Unauthorized("Invalid username or password.");
             }
 
             var claims = new[]
             {
-                new Claim(ClaimTypes.Name, request.Username)
+                new Claim(ClaimTypes.Name, request.Username),
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("yourSuperSecretKey1234567890!@#$%^"));
@@ -53,7 +61,9 @@ namespace LaunchPad.Controllers
                 signingCredentials: creds
             );
 
-            _logger.LogInformation("Login successful for user: {Username}", request.Username);
+            stopwatch.Stop();
+            _logger.LogInformation("[LOGIN] Authentication successful for user {Username}. Duration: {Duration}ms. UserId: {UserId}", 
+                request.Username, stopwatch.ElapsedMilliseconds, user.Id);
             return Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
         }
     }

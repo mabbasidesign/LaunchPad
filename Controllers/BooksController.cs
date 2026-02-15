@@ -10,10 +10,10 @@ namespace LaunchPad.Controllers
 {
     using Microsoft.AspNetCore.Mvc;
 
-        [ApiController]
-        [ApiVersion("1.0")]
-        [Route("api/v{version:apiVersion}/[controller]")]
-        [Microsoft.AspNetCore.Authorization.Authorize]
+    [ApiController]
+    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}/[controller]")]
+    [Microsoft.AspNetCore.Authorization.Authorize]
     public class BooksController : ControllerBase
     {
         private readonly IBookRepository _bookRepository;
@@ -28,99 +28,202 @@ namespace LaunchPad.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Book>>> GetBooks()
         {
-            _logger.LogInformation("Getting all books");
-            var books = await _bookRepository.GetAll();
-            var bookDtos = books.Select(b => new BookDto
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            var username = User?.Identity?.Name ?? "Anonymous";
+            _logger.LogInformation("[GET_BOOKS] Request started. User: {Username}", username);
+
+            try
             {
-                Id = b.Id,
-                Title = b.Title,
-                Author = b.Author,
-                Year = b.Year
-            });
-            return Ok(bookDtos);
+                var books = await _bookRepository.GetAll();
+                var bookDtos = books.Select(b => new BookDto
+                {
+                    Id = b.Id,
+                    Title = b.Title,
+                    Author = b.Author,
+                    Year = b.Year
+                }).ToList();
+
+                stopwatch.Stop();
+                _logger.LogInformation("[GET_BOOKS] Retrieved {BookCount} books. Duration: {Duration}ms. User: {Username}", 
+                    bookDtos.Count, stopwatch.ElapsedMilliseconds, username);
+                return Ok(bookDtos);
+            }
+            catch (Exception ex)
+            {
+                stopwatch.Stop();
+                _logger.LogError(ex, "[GET_BOOKS] Failed to retrieve books. Duration: {Duration}ms. User: {Username}. Exception: {ExceptionMessage}", 
+                    stopwatch.ElapsedMilliseconds, username, ex.Message);
+                throw;
+            }
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Book>> GetBook(int id)
         {
-            _logger.LogInformation("Getting book with id {BookId}", id);
-            var book = await _bookRepository.GetById(id);
-            if (book == null)
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            var username = User?.Identity?.Name ?? "Anonymous";
+            _logger.LogInformation("[GET_BOOK] Request started. BookId: {BookId}. User: {Username}", id, username);
+
+            try
             {
-                _logger.LogWarning("Book with id {BookId} not found", id);
-                return NotFound();
+                var book = await _bookRepository.GetById(id);
+                if (book == null)
+                {
+                    stopwatch.Stop();
+                    _logger.LogWarning("[GET_BOOK] Book not found. BookId: {BookId}. Duration: {Duration}ms. User: {Username}", 
+                        id, stopwatch.ElapsedMilliseconds, username);
+                    return NotFound();
+                }
+
+                var bookDto = new BookDto
+                {
+                    Id = book.Id,
+                    Title = book.Title,
+                    Author = book.Author,
+                    Year = book.Year
+                };
+
+                stopwatch.Stop();
+                _logger.LogInformation("[GET_BOOK] Retrieved book {Title}. BookId: {BookId}. Duration: {Duration}ms. User: {Username}", 
+                    book.Title, id, stopwatch.ElapsedMilliseconds, username);
+                return Ok(bookDto);
             }
-            var bookDto = new BookDto
+            catch (Exception ex)
             {
-                Id = book.Id,
-                Title = book.Title,
-                Author = book.Author,
-                Year = book.Year
-            };
-            return Ok(bookDto);
+                stopwatch.Stop();
+                _logger.LogError(ex, "[GET_BOOK] Failed to retrieve book {BookId}. Duration: {Duration}ms. User: {Username}. Exception: {ExceptionMessage}", 
+                    id, stopwatch.ElapsedMilliseconds, username, ex.Message);
+                throw;
+            }
         }
 
         [HttpPost]
         public async Task<ActionResult<Book>> CreateBook([FromBody] Book book)
         {
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            var username = User?.Identity?.Name ?? "Anonymous";
+            _logger.LogInformation("[CREATE_BOOK] Request started. Title: {Title}. Author: {Author}. User: {Username}", 
+                book.Title, book.Author, username);
+
             if (!ModelState.IsValid)
             {
-                _logger.LogWarning("Invalid book data for creation: {Errors}", ModelState.Values.SelectMany(v => v.Errors));
+                stopwatch.Stop();
+                _logger.LogWarning("[CREATE_BOOK] Validation failed. Duration: {Duration}ms. Errors: {Errors}. User: {Username}", 
+                    stopwatch.ElapsedMilliseconds,
+                    string.Join(", ", ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage))),
+                    username);
                 return BadRequest(ModelState);
             }
-            _logger.LogInformation("Creating a new book: {Title}", book.Title);
-            var newBook = new Book
+
+            try
             {
-                Title = book.Title,
-                Author = book.Author,
-                ISBN = book.ISBN,
-                Price = book.Price,
-                Stock = book.Stock,
-                Year = book.Year
-            };
-            await _bookRepository.Add(newBook);
-            _logger.LogInformation("Book created with id {BookId}", newBook.Id);
-            var bookDto = new BookDto
+                var newBook = new Book
+                {
+                    Title = book.Title,
+                    Author = book.Author,
+                    ISBN = book.ISBN,
+                    Price = book.Price,
+                    Stock = book.Stock,
+                    Year = book.Year
+                };
+                await _bookRepository.Add(newBook);
+
+                stopwatch.Stop();
+                _logger.LogInformation("[CREATE_BOOK] Book created successfully. BookId: {BookId}. Title: {Title}. Duration: {Duration}ms. User: {Username}", 
+                    newBook.Id, newBook.Title, stopwatch.ElapsedMilliseconds, username);
+
+                var bookDto = new BookDto
+                {
+                    Id = newBook.Id,
+                    Title = newBook.Title,
+                    Author = newBook.Author,
+                    Year = newBook.Year
+                };
+                return CreatedAtAction(nameof(GetBook), new { id = newBook.Id }, bookDto);
+            }
+            catch (Exception ex)
             {
-                Id = newBook.Id,
-                Title = newBook.Title,
-                Author = newBook.Author,
-                Year = newBook.Year
-            };
-            return CreatedAtAction(nameof(GetBook), new { id = newBook.Id }, bookDto);
+                stopwatch.Stop();
+                _logger.LogError(ex, "[CREATE_BOOK] Failed to create book. Title: {Title}. Duration: {Duration}ms. User: {Username}. Exception: {ExceptionMessage}", 
+                    book.Title, stopwatch.ElapsedMilliseconds, username, ex.Message);
+                throw;
+            }
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateBook(int id, [FromBody] Book book)
         {
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            var username = User?.Identity?.Name ?? "Anonymous";
+            _logger.LogInformation("[UPDATE_BOOK] Request started. BookId: {BookId}. Title: {Title}. User: {Username}", 
+                id, book.Title, username);
+
             if (!ModelState.IsValid)
             {
-                _logger.LogWarning("Invalid book data for update: {Errors}", ModelState.Values.SelectMany(v => v.Errors));
+                stopwatch.Stop();
+                _logger.LogWarning("[UPDATE_BOOK] Validation failed for BookId {BookId}. Duration: {Duration}ms. Errors: {Errors}. User: {Username}", 
+                    id, stopwatch.ElapsedMilliseconds,
+                    string.Join(", ", ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage))),
+                    username);
                 return BadRequest(ModelState);
             }
+
             if (id != book.Id)
             {
-                _logger.LogWarning("Book id mismatch: route id {RouteId}, book id {BookId}", id, book.Id);
+                stopwatch.Stop();
+                _logger.LogWarning("[UPDATE_BOOK] ID mismatch. RouteId: {RouteId}. BookId: {BookId}. Duration: {Duration}ms. User: {Username}", 
+                    id, book.Id, stopwatch.ElapsedMilliseconds, username);
                 return BadRequest("Book ID mismatch.");
             }
-            _logger.LogInformation("Updating book with id {BookId}", id);
-            await _bookRepository.Update(book);
-            return NoContent();
+
+            try
+            {
+                await _bookRepository.Update(book);
+                stopwatch.Stop();
+                _logger.LogInformation("[UPDATE_BOOK] Book updated successfully. BookId: {BookId}. Title: {Title}. Duration: {Duration}ms. User: {Username}", 
+                    id, book.Title, stopwatch.ElapsedMilliseconds, username);
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                stopwatch.Stop();
+                _logger.LogError(ex, "[UPDATE_BOOK] Failed to update book {BookId}. Duration: {Duration}ms. User: {Username}. Exception: {ExceptionMessage}", 
+                    id, stopwatch.ElapsedMilliseconds, username, ex.Message);
+                throw;
+            }
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteBook(int id)
         {
-            _logger.LogInformation("Deleting book with id {BookId}", id);
-            var book = await _bookRepository.GetById(id);
-            if (book == null)
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            var username = User?.Identity?.Name ?? "Anonymous";
+            _logger.LogInformation("[DELETE_BOOK] Request started. BookId: {BookId}. User: {Username}", id, username);
+
+            try
             {
-                _logger.LogWarning("Book with id {BookId} not found for deletion", id);
-                return NotFound();
+                var book = await _bookRepository.GetById(id);
+                if (book == null)
+                {
+                    stopwatch.Stop();
+                    _logger.LogWarning("[DELETE_BOOK] Book not found. BookId: {BookId}. Duration: {Duration}ms. User: {Username}", 
+                        id, stopwatch.ElapsedMilliseconds, username);
+                    return NotFound();
+                }
+
+                await _bookRepository.Delete(id);
+                stopwatch.Stop();
+                _logger.LogInformation("[DELETE_BOOK] Book deleted successfully. BookId: {BookId}. Title: {Title}. Duration: {Duration}ms. User: {Username}", 
+                    id, book.Title, stopwatch.ElapsedMilliseconds, username);
+                return NoContent();
             }
-            await _bookRepository.Delete(id);
-            _logger.LogInformation("Book with id {BookId} deleted", id);
-            return NoContent();
+            catch (Exception ex)
+            {
+                stopwatch.Stop();
+                _logger.LogError(ex, "[DELETE_BOOK] Failed to delete book {BookId}. Duration: {Duration}ms. User: {Username}. Exception: {ExceptionMessage}", 
+                    id, stopwatch.ElapsedMilliseconds, username, ex.Message);
+                throw;
+            }
         }
     }
 }

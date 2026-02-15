@@ -293,11 +293,42 @@ All API endpoints use **Data Annotations** for input validation. Invalid request
   - Location: `C:/LaunchpadLog/{DayName}/log-.txt`
 - **Log Levels**: Information, Warning, Error
 - **Structured Logging**: Used throughout for better debugging
-- **Events Logged**:
-  - User registration and login attempts
-  - Book CRUD operations
-  - Validation errors
+
+### Controller Logging
+
+Each controller action logs:
+- **Request Start**: Action name, request parameters, and authenticated user
+- **Validation**: All validation errors with field details
+- **Business Logic**: Resource not found, duplicates, constraint failures
+- **Success**: Completion with execution time and affected resource IDs
+- **Errors**: Full exception details for debugging
+
+### Log Format
+```
+[ACTION_NAME] Message. Key: {Value}. Duration: {DurationMs}ms. User: {Username}
+```
+
+### Examples
+- `[LOGIN] Request started. Username: john_doe`
+- `[GET_BOOKS] Retrieved 10 books. Duration: 42ms. User: john_doe`
+- `[CREATE_BOOK] Failed to create book. Duration: 150ms. User: john_doe`
+- `[UPDATE_BOOK] Validation failed for BookId 5. Duration: 12ms. User: john_doe`
+- `[DELETE_BOOK] Book not found. BookId: 999. Duration: 8ms. User: john_doe`
+
+### Performance Tracking
+
+All controller actions track execution time using `Stopwatch`:
+- Request start and end times captured
+- Duration (in milliseconds) logged for every operation
+- Helps identify slow endpoints and performance bottlenecks
+- Useful for load testing and optimization
+
+### Events Logged
+  - User registration and login attempts with success/failure reasons
+  - Book CRUD operations with resource details
+  - Data validation failures with error messages
   - Authorization failures
+  - Exception details with stack traces
 
 ## Getting Started
 1. Clone the repository
