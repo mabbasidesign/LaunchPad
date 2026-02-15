@@ -3,6 +3,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
 using LaunchPad.Data;
+using LaunchPad.Middleware;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.RateLimiting;
 using Serilog;
@@ -102,6 +103,10 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 var app = builder.Build();
+
+// Use global exception handling middleware (must be first)
+app.UseExceptionHandling();
+
 // Use response compression middleware
 app.UseResponseCompression();
 

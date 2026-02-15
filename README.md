@@ -42,6 +42,7 @@ The following SQL optimization strategies are planned for future implementation:
 - Rate limiting and throttling (10 requests per 10 seconds per IP)
 - Response compression
 - JWT Authentication with Bearer tokens
+- **Global Exception Handling** - Centralized error handling with structured error responses
 - Swagger/OpenAPI documentation
 - Structured logging with Serilog
 
@@ -173,6 +174,40 @@ The database is initialized with sample books:
 1. "The Pragmatic Programmer" by Andrew Hunt, David Thomas
 2. "Clean Code" by Robert C. Martin
 3. "Design Patterns" by Erich Gamma et al.
+
+## Exception Handling
+
+The application uses **Global Exception Handling Middleware** to catch and handle all unhandled exceptions with consistent, structured error responses.
+
+### Handled Exception Types
+- **ArgumentNullException / ArgumentException**: Returns HTTP 400 Bad Request
+- **InvalidOperationException**: Returns HTTP 400 Bad Request
+- **KeyNotFoundException**: Returns HTTP 404 Not Found
+- **UnauthorizedAccessException**: Returns HTTP 401 Unauthorized
+- **Unhandled Exceptions**: Returns HTTP 500 Internal Server Error
+
+### Exception Response Format
+All exception responses follow this standard format:
+```json
+{
+  "message": "An internal server error occurred.",
+  "details": "Exception message details",
+  "traceId": "0HMVJR0T7JIUG:00000001",
+  "timestamp": "2026-02-15T14:30:00Z"
+}
+```
+
+### Features
+- **Centralized Handling**: All exceptions caught in one middleware
+- **Structured Logging**: Full exception details logged with Serilog
+- **Consistent Responses**: Client receives standardized error format
+- **Request Context**: Logs include request path, method, and trace ID
+- **Security**: Sensitive stack traces logged internally, generic messages sent to clients
+
+### Implementation
+- Middleware: `Middleware/ExceptionHandlingMiddleware.cs`
+- Extension: `UseExceptionHandling()` registered in `Program.cs`
+- Executed first in the middleware pipeline to catch all exceptions
 
 ## Input Validation
 
