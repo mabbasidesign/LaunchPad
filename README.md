@@ -260,12 +260,14 @@ All API endpoints use **Data Annotations** for input validation. Invalid request
 
 ### Registration (RegisterRequestDto) Validation
 - **Username**: Required, 3-50 characters, alphanumeric + underscore/hyphen only
-- **Password**: Required, 8-128 characters
-  - Must contain uppercase letter (A-Z)
+- **Password**: Enforced through `PasswordComplexityAttribute`
+  - Length: 8-128 characters
   - Must contain lowercase letter (a-z)
+  - Must contain uppercase letter (A-Z)
   - Must contain digit (0-9)
   - Must contain special character (@$!%*?&)
-  - Strong password enforcement on registration
+  - Cannot contain spaces
+  - Cannot have more than 2 consecutive identical characters
 
 ### Login (LoginRequestDto) Validation
 - **Username**: Required, 3-50 characters
@@ -283,6 +285,73 @@ All API endpoints use **Data Annotations** for input validation. Invalid request
   "status": 400
 }
 ```
+
+## Password Complexity Validation
+
+The API enforces strict password complexity requirements through a custom `PasswordComplexityAttribute` validation attribute for enhanced security.
+
+### Password Requirements
+
+All passwords must meet these criteria:
+- **Length**: 8-128 characters
+- **Lowercase Letter**: At least one (a-z)
+- **Uppercase Letter**: At least one (A-Z)
+- **Digit**: At least one (0-9)
+- **Special Character**: At least one (@, $, !, %, *, ?, &)
+- **No Spaces**: Whitespace characters not allowed
+- **No Repetition**: Cannot have more than 2 consecutive identical characters (e.g., "aaa" fails)
+
+### Valid Password Examples
+- `MyPassword123!` - Contains all required character types
+- `SecureP@ssw0rd` - Strong password with special character at position 7
+- `Abc123$xyz` - Simple but meets all requirements
+- `Test@Pass99` - Special character in middle of password
+
+### Invalid Password Examples
+
+| Password | Reason |
+|----------|--------|
+| `password123` | Missing uppercase letter and special character |
+| `PASSWORD!` | Missing lowercase letter and digit |
+| `Pass123` | Missing special character |
+| `Pass 123!` | Contains space character |
+| `Passsss1!` | More than 2 consecutive 's' characters |
+| `P@1` | Too short (less than 8 characters) |
+| `MyPassword` | No digit or special character |
+
+### Custom Validator Implementation
+
+- **Location**: `Validation/PasswordComplexityAttribute.cs`
+- **Usage**: Applied to `RegisterRequestDto.Password` in `DTO/UserDto.cs`
+- **Features**:
+  - Provides detailed error messages for each validation rule
+  - Checks character types individually
+  - Detects consecutive identical characters
+  - Fully reusable across any password property
+  - Activates on model validation during registration
+
+### Password Validation Error Response
+
+When password validation fails, the API returns an HTTP 400 response with specific error details:
+
+```json
+{
+  "errors": {
+    "Password": ["Password must contain at least one special character (@, $, !, %, *, ?, or &)."]
+  },
+  "type": "https://tools.ietf.org/html/rfc7231#section-6.4.1",
+  "title": "One or more validation errors occurred.",
+  "status": 400
+}
+```
+
+### Security Benefits
+
+- Prevents weak passwords from being created
+- Reduces risk of account compromise
+- Enforces industry-standard password complexity rules
+- Provides immediate feedback to users on password requirements
+- Helps meet security compliance standards (ISO 27001, NIST, etc.)
 
 ## Logging
 
