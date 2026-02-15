@@ -1,9 +1,5 @@
-using LaunchPad.Data;
-using LaunchPad.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Security.Cryptography;
-using System.Text;
+using LaunchPad.Services;
 
 namespace LaunchPad.Controllers
 {
@@ -11,34 +7,21 @@ namespace LaunchPad.Controllers
     [Route("api/[controller]")]
     public class RegisterController : ControllerBase
     {
-        private readonly AppDbContext _context;
-        public RegisterController(AppDbContext context)
+        private readonly IUserService _userService;
+        public RegisterController(IUserService userService)
         {
-            _context = context;
+            _userService = userService;
         }
 
         [HttpPost]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
-            if (await _context.Users.AnyAsync(u => u.Username == request.Username))
+            if (await _userService.UserExistsAsync(request.Username))
             {
                 return BadRequest("Username already exists.");
             }
-            var user = new User
-            {
-                Username = request.Username,
-                PasswordHash = HashPassword(request.Password)
-            };
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+            await _userService.RegisterUserAsync(request.Username, request.Password);
             return Ok("User registered successfully.");
-        }
-
-        private string HashPassword(string password)
-        {
-            using var sha256 = SHA256.Create();
-            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-            return Convert.ToBase64String(bytes);
         }
     }
 

@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using LaunchPad.Services;
 
 namespace LaunchPad.Controllers
 {
@@ -11,17 +11,17 @@ namespace LaunchPad.Controllers
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        private readonly LaunchPad.Data.AppDbContext _context;
-        public AuthController(LaunchPad.Data.AppDbContext context)
+        private readonly IAuthService _authService;
+        public AuthController(IAuthService authService)
         {
-            _context = context;
+            _authService = authService;
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.Username);
-            if (user == null || user.PasswordHash != HashPassword(request.Password))
+            var user = await _authService.ValidateUserAsync(request.Username, request.Password);
+            if (user == null)
             {
                 return Unauthorized("Invalid username or password.");
             }
@@ -43,13 +43,6 @@ namespace LaunchPad.Controllers
             );
 
             return Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
-        }
-
-        private string HashPassword(string password)
-        {
-            using var sha256 = System.Security.Cryptography.SHA256.Create();
-            var bytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
-            return Convert.ToBase64String(bytes);
         }
     }
 
