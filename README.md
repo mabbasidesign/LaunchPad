@@ -39,11 +39,150 @@ The following SQL optimization strategies are planned for future implementation:
 - Query pagination and AsNoTracking
 
 ## Middleware
-- Rate limiting and throttling
-- Distributed Redis caching for API responses
+- Rate limiting and throttling (10 requests per 10 seconds per IP)
 - Response compression
-- Exception handling and ProblemDetails
-- Health checks
+- JWT Authentication with Bearer tokens
+- Swagger/OpenAPI documentation
+- Structured logging with Serilog
+
+## API Endpoints
+
+### Authentication
+- **POST** `/api/register` - Register a new user
+  - Request: `{ "username": "string", "password": "string" }`
+  - Response: 200 OK with success message
+  - Response: 400 Bad Request if username already exists
+
+- **POST** `/api/auth/login` - Authenticate user and get JWT token
+  - Request: `{ "username": "string", "password": "string" }`
+  - Response: 200 OK with JWT token (1-hour expiration)
+  - Response: 401 Unauthorized if credentials are invalid
+
+### Books (All endpoints require JWT Authorization)
+- **GET** `/api/v1.0/books` - Get all books
+  - Response: 200 OK with list of BookDto objects
+
+- **GET** `/api/v1.0/books/{id}` - Get book by ID
+  - Response: 200 OK with BookDto or 404 Not Found
+
+- **POST** `/api/v1.0/books` - Create a new book
+  - Request: Book entity with Title, Author, ISBN, Price, Stock, Year
+  - Response: 201 Created with BookDto
+
+- **PUT** `/api/v1.0/books/{id}` - Update an existing book
+  - Request: Book entity
+  - Response: 204 No Content
+
+- **DELETE** `/api/v1.0/books/{id}` - Delete a book
+  - Response: 204 No Content or 404 Not Found
+
+## Data Models
+
+### User
+```csharp
+public class User
+{
+    public int Id { get; set; }
+    public string Username { get; set; }
+    public string PasswordHash { get; set; }  // SHA256 hashed
+}
+```
+
+### Book
+```csharp
+public class Book
+{
+    public int Id { get; set; }
+    public string Title { get; set; }
+    public string Author { get; set; }
+    public string ISBN { get; set; }
+    public decimal Price { get; set; }
+    public int Stock { get; set; }
+    public int Year { get; set; }
+}
+```
+
+## Data Transfer Objects (DTOs)
+
+### BookDto
+```csharp
+public class BookDto
+{
+    public int Id { get; set; }
+    public string Title { get; set; }
+    public string Author { get; set; }
+    public int Year { get; set; }
+}
+```
+
+### UserDto
+```csharp
+public class UserDto
+{
+    public int Id { get; set; }
+    public string Username { get; set; }
+}
+```
+
+### RegisterRequestDto / LoginRequestDto
+```csharp
+public class RegisterRequestDto
+{
+    public string Username { get; set; }
+    public string Password { get; set; }
+}
+
+public class LoginRequestDto
+{
+    public string Username { get; set; }
+    public string Password { get; set; }
+}
+```
+
+## Authentication & Security
+
+- **JWT Bearer Tokens**: Used for secure API access
+  - Issuer: `LaunchPadAPI`
+  - Audience: `LaunchPadUsers`
+  - Expiration: 1 hour
+  - Algorithm: HMAC-SHA256
+  - Key validation enabled
+
+- **Password Security**: Passwords are hashed using SHA256 before storage
+
+- **Rate Limiting**: Global rate limiter restricts to 10 requests per 10 seconds per IP address with queue limit of 2
+
+## API Versioning
+
+- Current API version: `1.0`
+- URL pattern: `/api/v{version}/[controller]`
+- Default version: 1.0 (automatically assigned if not specified)
+
+## Database
+
+- **Database Engine**: SQL Server
+- **ORM**: Entity Framework Core 8.0
+- **Connection String**: Configured in `appsettings.json` under `DefaultConnection`
+- **Migrations**: Located in `Migrations/` folder
+  - Initial database schema with Books and Users tables
+  - Column addition for Year in Book entity
+  - User table creation with Id, Username, PasswordHash
+
+### Seed Data
+The database is initialized with sample books:
+1. "The Pragmatic Programmer" by Andrew Hunt, David Thomas
+2. "Clean Code" by Robert C. Martin
+3. "Design Patterns" by Erich Gamma et al.
+
+## Logging
+
+- **Logger**: Serilog with structured logging
+- **Sinks**:
+  - Console output
+  - Daily rolling file logs (retention: 30 days)
+  - Location: `C:/LaunchpadLog/{DayName}/log-.txt`
+- **Log Levels**: Information, Warning, Error
+- **Structured Logging**: Used in BooksController for better debugging
 
 ## Getting Started
 1. Clone the repository
@@ -81,8 +220,50 @@ This project uses Azure Bicep files for infrastructure as code:
 
 See the `infra/` folder for full Bicep templates and customization options.
 
+## Project Files
+
+- `LaunchPad.csproj` - Project file with NuGet dependencies
+- `LaunchPad.sln` - Visual Studio solution file
+- `LaunchPad.http` - HTTP request examples for testing endpoints
+- `appsettings.json` - Application configuration (database, logging)
+- `appsettings.Development.json` - Development-specific settings
+- `Properties/launchSettings.json` - Launch profiles and URLs
+
+## Technology Stack
+
+- **Framework**: .NET 8.0 (C#)
+- **Web Framework**: ASP.NET Core
+- **Database**: SQL Server with Entity Framework Core 8.0
+- **Authentication**: JWT Bearer Tokens
+- **API Documentation**: Swagger/OpenAPI 6.6.2
+- **Logging**: Serilog with file and console sinks
+- **Rate Limiting**: Built-in ASP.NET Core Rate Limiting
+- **Response Compression**: gzip
+- **Caching**: Distributed Memory Cache
+- **Infrastructure**: Azure Bicep for IaC
+
+## Development
+
+### Local HTTP Requests
+See `LaunchPad.http` for example HTTP requests that can be executed directly in VS Code or Rider.
+
+### Debugging
+1. Build: `dotnet build`
+2. Debug: `dotnet run`
+3. Access Swagger UI: `https://localhost:5001/swagger`
+
+## NuGet Packages
+
+- Microsoft.AspNetCore.Authentication.JwtBearer
+- Microsoft.AspNetCore.Mvc.Versioning
+- Microsoft.AspNetCore.RateLimiting
+- Microsoft.EntityFrameworkCore.SqlServer
+- Serilog.AspNetCore
+- Serilog.Sinks.File
+- Swashbuckle.AspNetCore
+
 ## Contributing
-Pull requests and issues are welcome. Please follow DDD and .NET best practices.
+Pull requests and issues are welcome. Please follow .NET best practices.
 
 ## License
 MIT
