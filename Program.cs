@@ -66,6 +66,10 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddScoped<LaunchPad.Services.IBookRepository, LaunchPad.Services.BookRepository>();
 
+// Register user and auth services
+builder.Services.AddScoped<LaunchPad.Services.IUserService, LaunchPad.Services.UserService>();
+builder.Services.AddScoped<LaunchPad.Services.IAuthService, LaunchPad.Services.AuthService>();
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
