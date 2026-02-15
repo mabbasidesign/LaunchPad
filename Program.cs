@@ -14,6 +14,8 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
+// Add response compression
+builder.Services.AddResponseCompression();
 builder.Host.UseSerilog();
 
 // Add JWT authentication
@@ -100,6 +102,8 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 var app = builder.Build();
+// Use response compression middleware
+app.UseResponseCompression();
 
 // Use rate limiting middleware
 app.UseRateLimiter();
