@@ -1,21 +1,18 @@
 # LaunchPad API
 
 ## Overview
-LaunchPad is a scalable, high-performance .NET API designed with modern best practices, including Domain-Driven Design (DDD), advanced SQL optimization, and robust middleware features.
+LaunchPad is a scalable, high-performance .NET API built with modern best practices. It includes dependency injection, rate limiting, distributed caching, structured logging, and service-oriented architecture.
 
 ## Features
 - Asynchronous I/O and streaming
-- Dependency injection
+- Dependency injection with service interfaces
 - Advanced rate limiting and throttling
-- Circuit breaker and bulkhead isolation (Polly)
 - Distributed caching with Redis (IDistributedCache)
-- Response caching and batching
+- Response compression
 - Efficient serialization (System.Text.Json)
-- Entity Framework Core optimizations
+- Entity Framework Core with DbContext and repositories
 - Structured logging with Serilog (console and daily rolling file, retention policy)
 - Health checks and monitoring
-- Domain-Driven Design (DDD) principles
-- SQL performance tuning
 
 ## Project Structure
 - `Controllers/` - API endpoints
@@ -24,7 +21,8 @@ LaunchPad is a scalable, high-performance .NET API designed with modern best pra
 - `Data/` - DbContext and repository implementations
 - `infra/` - Infrastructure as code (Bicep)
 
-## DDD Practices
+## DDD Practices (Planned)
+The following Domain-Driven Design patterns are planned for future implementation:
 - Rich domain models with business logic
 - Repositories for aggregate persistence
 - Domain services for cross-entity logic
@@ -32,7 +30,8 @@ LaunchPad is a scalable, high-performance .NET API designed with modern best pra
 - Domain events for state changes
 - Separation of domain, application, and infrastructure layers
 
-## SQL Optimization
+## SQL Optimization (Planned)
+The following SQL optimization strategies are planned for future implementation:
 - Connection pooling
 - Index tuning
 - Stored procedures and batching
