@@ -41,6 +41,7 @@ The following SQL optimization strategies are planned for future implementation:
 ## Middleware
 - Rate limiting and throttling (10 requests per 10 seconds per IP)
 - Response compression
+- **CORS** (Cross-Origin Resource Sharing) - Allows frontend applications to access the API
 - JWT Authentication with Bearer tokens
 - **Global Exception Handling** - Centralized error handling with structured error responses
 - Swagger/OpenAPI documentation
@@ -174,6 +175,38 @@ The database is initialized with sample books:
 1. "The Pragmatic Programmer" by Andrew Hunt, David Thomas
 2. "Clean Code" by Robert C. Martin
 3. "Design Patterns" by Erich Gamma et al.
+
+## CORS (Cross-Origin Resource Sharing)
+
+The API is configured to accept requests from whitelisted frontend origins, enabling secure cross-origin communication.
+
+### Allowed Origins
+- `http://localhost:3000` - React development server
+- `http://localhost:5000` - Local development (HTTP)
+- `http://localhost:5173` - Vite development server
+- `https://localhost:3001` - Local development (HTTPS)
+
+### CORS Policy Configuration
+- **Methods**: All HTTP methods allowed (GET, POST, PUT, DELETE, OPTIONS)
+- **Headers**: All headers allowed in requests
+- **Credentials**: Enabled (allows cookies and authorization headers to be sent)
+- **Exposed Headers**: `X-Pagination` (custom headers exposed to client)
+
+### How to Add More Origins
+Edit `Program.cs` in the CORS configuration:
+```csharp
+options.WithOrigins(
+    "http://localhost:3000",
+    "https://yourdomain.com"  // Add production domain here
+)
+```
+
+### CORS Errors
+If you get a CORS error in the browser console:
+1. Check that your frontend origin is in the `WithOrigins()` list
+2. Ensure you're using the correct protocol (http vs https)
+3. Verify port number matches
+4. Clear browser cache or use incognito mode
 
 ## Exception Handling
 

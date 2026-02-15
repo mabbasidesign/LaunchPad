@@ -64,6 +64,24 @@ builder.Services.AddRateLimiter(options =>
     options.RejectionStatusCode = 429;
 });
 
+// Add CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowSpecificOrigins", policy =>
+    {
+        policy.WithOrigins(
+            "http://localhost:3000",      // React dev server
+            "http://localhost:5000",      // Local development
+            "http://localhost:5173",      // Vite dev server
+            "https://localhost:3001"      // HTTPS local
+        )
+        .AllowAnyMethod()                 // Allow GET, POST, PUT, DELETE, etc.
+        .AllowAnyHeader()                 // Allow any headers
+        .AllowCredentials()               // Allow credentials (cookies, auth headers)
+        .WithExposedHeaders("X-Pagination"); // Expose custom headers to client
+    });
+});
+
 // Add services to the container.
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -112,6 +130,9 @@ app.UseResponseCompression();
 
 // Use rate limiting middleware
 app.UseRateLimiter();
+
+// Use CORS middleware (must be before Auth)
+app.UseCors("AllowSpecificOrigins");
 
 // Configure the HTTP request pipeline.
 
