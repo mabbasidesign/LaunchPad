@@ -10,9 +10,10 @@ namespace LaunchPad.Controllers
 {
     using Microsoft.AspNetCore.Mvc;
 
-    [ApiController]
-    [ApiVersion("1.0")]
-    [Route("api/v{version:apiVersion}/[controller]")]
+        [ApiController]
+        [ApiVersion("1.0")]
+        [Route("api/v{version:apiVersion}/[controller]")]
+        [Microsoft.AspNetCore.Authorization.Authorize]
     public class BooksController : ControllerBase
     {
         private readonly IBookRepository _bookRepository;
