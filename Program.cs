@@ -7,6 +7,7 @@ using LaunchPad.Middleware;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.RateLimiting;
 using Serilog;
+using MediatR;
 
 // Configure Serilog
 Log.Logger = new LoggerConfiguration()
@@ -93,6 +94,10 @@ builder.Services.AddScoped<LaunchPad.Services.IAuthService, LaunchPad.Services.A
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+
+// Register MediatR for CQRS pattern
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+
 builder.Services.AddSwaggerGen();
 builder.Services.AddSwaggerGen(options =>
 {

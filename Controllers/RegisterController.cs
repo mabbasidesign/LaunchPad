@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using LaunchPad.Services;
+using MediatR;
 using LaunchPad.DTO;
+using LaunchPad.Features.Auth.Commands;
 
 namespace LaunchPad.Controllers
 {
@@ -8,54 +9,39 @@ namespace LaunchPad.Controllers
     [Route("api/[controller]")]
     public class RegisterController : ControllerBase
     {
-        private readonly IUserService _userService;
+        private readonly IMediator _mediator;
         private readonly ILogger<RegisterController> _logger;
 
-        public RegisterController(IUserService userService, ILogger<RegisterController> logger)
+        public RegisterController(IMediator mediator, ILogger<RegisterController> logger)
         {
-            _userService = userService;
-            _logger = logger;
+            _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         [HttpPost]
         public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
         {
-            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-            _logger.LogInformation("[REGISTER] Request started. Username: {Username}", request.Username);
-
             if (!ModelState.IsValid)
             {
-                stopwatch.Stop();
-                _logger.LogWarning("[REGISTER] Validation failed for username {Username}. Duration: {Duration}ms. Errors: {Errors}", 
+                _logger.LogWarning("[REGISTER] Validation failed for username {Username}. Errors: {Errors}", 
                     request.Username, 
-                    stopwatch.ElapsedMilliseconds,
                     string.Join(", ", ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage))));
                 return BadRequest(ModelState);
             }
 
-            if (await _userService.UserExistsAsync(request.Username))
+            var command = new RegisterCommand(request.Username, request.Password);
+            var result = await _mediator.Send(command);
+
+            if (!result.Success)
             {
-                stopwatch.Stop();
-                _logger.LogWarning("[REGISTER] Username already exists. Username: {Username}. Duration: {Duration}ms", 
-                    request.Username, stopwatch.ElapsedMilliseconds);
-                return BadRequest("Username already exists.");
+                _logger.LogWarning("[REGISTER] Registration failed for username {Username}. Reason: {Message}", 
+                    request.Username, result.Message);
+                return BadRequest(new { message = result.Message });
             }
 
-            try
-            {
-                await _userService.RegisterUserAsync(request.Username, request.Password);
-                stopwatch.Stop();
-                _logger.LogInformation("[REGISTER] User registered successfully. Username: {Username}. Duration: {Duration}ms", 
-                    request.Username, stopwatch.ElapsedMilliseconds);
-                return Ok("User registered successfully.");
-            }
-            catch (Exception ex)
-            {
-                stopwatch.Stop();
-                _logger.LogError(ex, "[REGISTER] Registration failed for username {Username}. Duration: {Duration}ms. Exception: {ExceptionMessage}", 
-                    request.Username, stopwatch.ElapsedMilliseconds, ex.Message);
-                throw;
-            }
+            _logger.LogInformation("[REGISTER] User registered successfully. Username: {Username}. UserId: {UserId}", 
+                request.Username, result.UserId);
+            return Ok(new { message = result.Message, userId = result.UserId });
         }
     }
 }

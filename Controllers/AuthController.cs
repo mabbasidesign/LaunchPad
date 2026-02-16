@@ -1,10 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using LaunchPad.Services;
+using MediatR;
 using LaunchPad.DTO;
+using LaunchPad.Features.Auth.Commands;
 
 namespace LaunchPad.Controllers
 {
@@ -12,59 +9,36 @@ namespace LaunchPad.Controllers
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        private readonly IAuthService _authService;
+        private readonly IMediator _mediator;
         private readonly ILogger<AuthController> _logger;
 
-        public AuthController(IAuthService authService, ILogger<AuthController> logger)
+        public AuthController(IMediator mediator, ILogger<AuthController> logger)
         {
-            _authService = authService;
-            _logger = logger;
+            _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
         {
-            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-            _logger.LogInformation("[LOGIN] Request started. Username: {Username}", request.Username);
-
             if (!ModelState.IsValid)
             {
-                _logger.LogWarning("[LOGIN] Validation failed. Duration: {Duration}ms. Errors: {Errors}", 
-                    stopwatch.ElapsedMilliseconds, 
+                _logger.LogWarning("[LOGIN] Validation failed. Errors: {Errors}", 
                     string.Join(", ", ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage))));
                 return BadRequest(ModelState);
             }
 
-            var user = await _authService.ValidateUserAsync(request.Username, request.Password);
-            if (user == null)
+            var command = new LoginCommand(request.Username, request.Password);
+            var result = await _mediator.Send(command);
+
+            if (result.Token == string.Empty)
             {
-                stopwatch.Stop();
-                _logger.LogWarning("[LOGIN] Authentication failed for user {Username}. Duration: {Duration}ms. Reason: Invalid credentials", 
-                    request.Username, stopwatch.ElapsedMilliseconds);
-                return Unauthorized("Invalid username or password.");
+                _logger.LogWarning("[LOGIN] Authentication failed for user {Username}. Reason: Invalid credentials", 
+                    request.Username);
+                return Unauthorized(new { message = result.Message });
             }
 
-            var claims = new[]
-            {
-                new Claim(ClaimTypes.Name, request.Username),
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
-            };
-
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("yourSuperSecretKey1234567890!@#$%^"));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-            var token = new JwtSecurityToken(
-                issuer: "LaunchPadAPI",
-                audience: "LaunchPadUsers",
-                claims: claims,
-                expires: DateTime.Now.AddHours(1),
-                signingCredentials: creds
-            );
-
-            stopwatch.Stop();
-            _logger.LogInformation("[LOGIN] Authentication successful for user {Username}. Duration: {Duration}ms. UserId: {UserId}", 
-                request.Username, stopwatch.ElapsedMilliseconds, user.Id);
-            return Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
+            return Ok(new { token = result.Token, expiresAt = result.ExpiresAt });
         }
     }
 }
