@@ -6,6 +6,7 @@ LaunchPad is a scalable, high-performance .NET API built with modern best practi
 ## Features
 - Asynchronous I/O and streaming
 - Dependency injection with service interfaces
+- **CQRS Pattern** with MediatR for command/query segregation
 - Advanced rate limiting and throttling
 - Distributed caching with Redis (IDistributedCache)
 - Response compression
@@ -13,13 +14,80 @@ LaunchPad is a scalable, high-performance .NET API built with modern best practi
 - Entity Framework Core with DbContext and repositories
 - Structured logging with Serilog (console and daily rolling file, retention policy)
 - Health checks and monitoring
+- JWT Authentication with Bearer tokens
+- Custom validation attributes (password complexity)
 
 ## Project Structure
-- `Controllers/` - API endpoints
+- `Controllers/` - API endpoints (thin controllers using MediatR)
 - `Models/` - Domain entities and value objects
 - `Services/` - Domain and application services
 - `Data/` - DbContext and repository implementations
+- `Features/` - CQRS Commands and Queries with handlers
+  - `Auth/Commands/` - LoginCommand, RegisterCommand with handlers
+  - `Books/Commands/` - Create, Update, Delete commands with handlers
+  - `Books/Queries/` - GetAllBooks, GetBookById queries with handlers
+- `DTO/` - Data Transfer Objects
+- `Middleware/` - Custom middleware (exception handling)
 - `infra/` - Infrastructure as code (Bicep)
+- `Validation/` - Custom validation attributes
+
+## Architecture: CQRS with MediatR
+
+LaunchPad implements **CQRS (Command Query Responsibility Segregation)** pattern using **MediatR**, enabling clean separation of read and write operations.
+
+### How It Works
+
+**Request Flow:**
+```
+Controller (HTTP) 
+  ↓
+IMediator.Send(Command/Query)
+  ↓
+MediatR Routes to Appropriate Handler
+  ↓
+Handler Executes Business Logic (calls Services/Repositories)
+  ↓
+Handler Returns Result
+  ↓
+Controller Returns HTTP Response
+```
+
+### Commands (Write Operations)
+
+Commands modify data and return `Unit` (void) or an entity result.
+
+**Authentication Commands:**
+- `LoginCommand` → `LoginCommandHandler` → Validates credentials, generates JWT token
+- `RegisterCommand` → `RegisterCommandHandler` → Creates new user
+
+**Book Commands:**
+- `CreateBookCommand` → `CreateBookCommandHandler` → Adds book to database
+- `UpdateBookCommand` → `UpdateBookCommandHandler` → Modifies existing book
+- `DeleteBookCommand` → `DeleteBookCommandHandler` → Removes book from database
+
+### Queries (Read Operations)
+
+Queries retrieve data without modifying state and return DTOs or collections.
+
+**Book Queries:**
+- `GetAllBooksQuery` → `GetAllBooksQueryHandler` → Returns all books
+- `GetBookByIdQuery` → `GetBookByIdQueryHandler` → Returns single book by ID
+
+### Benefits
+
+✅ **Separation of Concerns**: Controllers only handle HTTP, handlers handle business logic  
+✅ **Loose Coupling**: Controllers depend on IMediator, not on services  
+✅ **Improved Testability**: Handlers can be tested independently  
+✅ **Reusability**: Handlers can be invoked from controllers, console apps, background jobs, webhooks  
+✅ **Scalability**: Read and write operations can be optimized independently  
+✅ **Maintainability**: Clear structure with explicit commands and queries  
+
+### Performance Monitoring
+
+All handlers include `Stopwatch` logging to track execution duration:
+```
+[COMMAND: Login] User logged in successfully. UserID: 1, Username: Admin, Duration: 943ms
+```
 
 ## DDD Practices (Planned)
 The following Domain-Driven Design patterns are planned for future implementation:
@@ -39,13 +107,28 @@ The following SQL optimization strategies are planned for future implementation:
 - Query pagination and AsNoTracking
 
 ## Middleware
+- **Exception Handling Middleware** - Centralized error handling with structured error responses (ErrorResponse model)
 - Rate limiting and throttling (10 requests per 10 seconds per IP)
 - Response compression
-- **CORS** (Cross-Origin Resource Sharing) - Allows frontend applications to access the API
+- **CORS** (Cross-Origin Resource Sharing) - Allows frontend applications from localhost:3000, 5000, 5173, 3001
 - JWT Authentication with Bearer tokens
-- **Global Exception Handling** - Centralized error handling with structured error responses
 - Swagger/OpenAPI documentation
 - Structured logging with Serilog
+
+## Input Validation
+
+All DTOs and entities include comprehensive data validation using data annotations:
+
+- **Required**: Mandatory fields (Username, Password, Title, Author)
+- **StringLength**: Enforces length constraints (3-50 for username, 1-200 for title/author)
+- **Range**: Numeric bounds (Price 0.01-10000, Stock 0-100000, Year 1000-2100)
+- **RegularExpression**: Pattern matching for ISBN and alphanumeric fields
+- **Custom PasswordComplexityAttribute**: Enforces strong passwords
+  - Length: 8-128 characters
+  - Must include: lowercase, uppercase, digit, special character (@$!%*?&)
+  - No spaces or 3+ consecutive identical characters
+
+ModelState validation occurs in controllers before MediatR dispatch.
 
 ## API Endpoints
 
