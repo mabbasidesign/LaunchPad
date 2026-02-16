@@ -18,18 +18,34 @@ LaunchPad is a scalable, high-performance .NET API built with modern best practi
 - Custom validation attributes (password complexity)
 
 ## Project Structure
-- `Controllers/` - API endpoints (thin controllers using MediatR)
-- `Models/` - Domain entities and value objects
-- `Services/` - Domain and application services
-- `Data/` - DbContext and repository implementations
-- `Features/` - CQRS Commands and Queries with handlers
-  - `Auth/Commands/` - LoginCommand, RegisterCommand with handlers
-  - `Books/Commands/` - Create, Update, Delete commands with handlers
-  - `Books/Queries/` - GetAllBooks, GetBookById queries with handlers
-- `DTO/` - Data Transfer Objects
-- `Middleware/` - Custom middleware (exception handling)
-- `infra/` - Infrastructure as code (Bicep)
-- `Validation/` - Custom validation attributes
+
+```
+LaunchPad/                          (Git repository root)
+├── LaunchPad.sln                  (Single solution file for all projects)
+│
+├── src/LaunchPad/                 (Main application)
+│   ├── Controllers/               - API endpoints (thin controllers using MediatR)
+│   ├── Models/                    - Domain entities and value objects
+│   ├── Services/                  - Domain and application services
+│   ├── Data/                      - DbContext and repository implementations
+│   ├── Features/                  - CQRS Commands and Queries with handlers
+│   │   ├── Auth/Commands/         - LoginCommand, RegisterCommand with handlers
+│   │   ├── Books/Commands/        - Create, Update, Delete commands with handlers
+│   │   └── Books/Queries/         - GetAllBooks, GetBookById queries with handlers
+│   ├── DTO/                       - Data Transfer Objects
+│   ├── Middleware/                - Custom middleware (exception handling)
+│   ├── Validation/                - Custom validation attributes
+│   ├── Program.cs
+│   └── LaunchPad.csproj
+│
+└── tests/LaunchPad.Tests/         (Unit tests)
+    ├── Handlers/                  - MediatR handler tests
+    │   ├── LoginCommandHandlerTests.cs
+    │   ├── GetAllBooksQueryHandlerTests.cs
+    │   └── CreateBookCommandHandlerTests.cs
+    └── LaunchPad.Tests.csproj
+
+```
 
 ## Architecture: CQRS with MediatR
 
@@ -106,14 +122,86 @@ The following SQL optimization strategies are planned for future implementation:
 - Table partitioning
 - Query pagination and AsNoTracking
 
-## Middleware
-- **Exception Handling Middleware** - Centralized error handling with structured error responses (ErrorResponse model)
-- Rate limiting and throttling (10 requests per 10 seconds per IP)
-- Response compression
-- **CORS** (Cross-Origin Resource Sharing) - Allows frontend applications from localhost:3000, 5000, 5173, 3001
-- JWT Authentication with Bearer tokens
-- Swagger/OpenAPI documentation
-- Structured logging with Serilog
+## Testing
+
+LaunchPad includes a comprehensive unit test suite using **xUnit** and **Moq** for testing MediatR handlers in isolation.
+
+### Test Framework Stack
+- **xUnit 2.6.4** - Unit testing framework
+- **Moq 4.20.70** - Mocking library for dependency isolation
+- **Microsoft.EntityFrameworkCore.InMemory** - In-memory database for integration tests
+
+### Test Structure
+
+**Unit Tests** - Located in `tests/LaunchPad.Tests/Handlers/`
+
+#### LoginCommandHandlerTests
+- ✅ Valid credentials return JWT token
+- ✅ Invalid credentials return empty token
+- ✅ AuthService called exactly once (verification)
+
+#### GetAllBooksQueryHandlerTests
+- ✅ Returns all books from repository
+- ✅ Returns empty list when no books exist
+- ✅ Repository.GetAll() called once
+
+#### CreateBookCommandHandlerTests
+- ✅ Creates book with valid data
+- ✅ Repository.Add() called with correct data
+- ✅ Parameterized tests for invalid prices (Theory with InlineData)
+
+### Test Patterns Used
+
+**Arrange-Act-Assert Pattern:**
+```csharp
+[Fact]
+public async Task Handle_WithValidCredentials_ReturnsTokenResponse()
+{
+    // Arrange - setup mocks and test data
+    var user = new User { Id = 1, Username = "testuser" };
+    _mockAuthService.Setup(x => x.ValidateUserAsync("testuser", "password123"))
+        .ReturnsAsync(user);
+    
+    var handler = new LoginCommandHandler(_mockAuthService.Object, 
+                                          _mockConfiguration.Object, 
+                                          _mockLogger.Object);
+    var command = new LoginCommand("testuser", "password123");
+    
+    // Act - execute the handler
+    var result = await handler.Handle(command, CancellationToken.None);
+    
+    // Assert - verify results and mock calls
+    Assert.NotEmpty(result.Token);
+    _mockAuthService.Verify(x => x.ValidateUserAsync("testuser", "password123"), 
+                           Times.Once);
+}
+```
+
+### Running Tests
+
+```bash
+# Run all tests
+dotnet test
+
+# Run with verbose output
+dotnet test --verbosity normal
+
+# Run specific test class
+dotnet test --filter ClassName=LoginCommandHandlerTests
+```
+
+### Test Results
+- **Total Tests**: 10
+- **Status**: ✅ All passing
+- **Coverage**: MediatR handlers, query handlers, and command validation
+
+### Future Test Expansion
+- Integration tests with EF InMemory DbContext
+- E2E tests for API endpoints
+- Performance benchmarks
+- Data validation tests
+
+
 
 ## Input Validation
 
@@ -160,6 +248,16 @@ ModelState validation occurs in controllers before MediatR dispatch.
 
 - **DELETE** `/api/v1.0/books/{id}` - Delete a book
   - Response: 204 No Content or 404 Not Found
+
+## Middleware
+
+- **Exception Handling Middleware** - Centralized error handling with structured error responses (ErrorResponse model)
+- Rate limiting and throttling (10 requests per 10 seconds per IP)
+- Response compression (gzip)
+- **CORS** (Cross-Origin Resource Sharing) - Allows frontend applications from localhost:3000, 5000, 5173, 3001
+- JWT Authentication with Bearer tokens
+- Swagger/OpenAPI documentation
+- Structured logging with Serilog
 
 ## Data Models
 
@@ -483,6 +581,87 @@ All controller actions track execution time using `Stopwatch`:
   - Exception details with stack traces
 
 ## Getting Started
+
+### Prerequisites
+- .NET 8.0 SDK or later
+- SQL Server (local or remote)
+- Visual Studio Code or Visual Studio 2022+ (optional)
+
+### Build the Solution
+
+```bash
+# Navigate to project root
+cd LaunchPad
+
+# Restore dependencies
+dotnet restore
+
+# Build the solution
+dotnet build
+
+# Build for release
+dotnet build --configuration Release
+```
+
+### Run the Application
+
+```bash
+# Run from project root (builds and runs main API)
+dotnet run --project src/LaunchPad
+
+# Run tests
+dotnet test
+
+# Run tests with verbose output
+dotnet test --verbosity normal
+
+# Run specific test class
+dotnet test --filter ClassName=LoginCommandHandlerTests
+```
+
+### Database Setup
+
+```bash
+# Apply migrations to create database schema
+cd src/LaunchPad
+dotnet ef database update
+
+# Create a migration for new changes
+dotnet ef migrations add MigrationName
+
+# Remove last migration
+dotnet ef migrations remove
+```
+
+### API Access
+
+- **API URL**: `https://localhost:5001`
+- **Swagger UI**: `https://localhost:5001/swagger`
+- **Health Check**: `https://localhost:5001/health`
+
+### Example Requests
+
+Register a new user:
+```bash
+curl -X POST https://localhost:5001/api/register \
+  -H "Content-Type: application/json" \
+  -d '{"username":"john_doe","password":"SecurePass123!@"}'
+```
+
+Login and get JWT token:
+```bash
+curl -X POST https://localhost:5001/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"john_doe","password":"SecurePass123!@"}'
+```
+
+Get all books (requires Authorization header):
+```bash
+curl -X GET https://localhost:5001/api/v1.0/books \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+## Getting Started (Original)
 1. Clone the repository
 2. Configure SQL credentials and Redis connection string in `appsettings.json`
 3. Run migrations: `dotnet ef database update`
@@ -538,7 +717,10 @@ See the `infra/` folder for full Bicep templates and customization options.
 - **Rate Limiting**: Built-in ASP.NET Core Rate Limiting
 - **Response Compression**: gzip
 - **Caching**: Distributed Memory Cache
+- **CQRS Pattern**: MediatR 12.2.0
+- **Testing**: xUnit 2.6.4, Moq 4.20.70, EF InMemory
 - **Infrastructure**: Azure Bicep for IaC
+- **Project Structure**: Multi-project solution (src/ and tests/ directories)
 
 ## Development
 
