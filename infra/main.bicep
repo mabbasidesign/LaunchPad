@@ -2,7 +2,8 @@
 // Entry point for deploying all Azure resources for LaunchPad app
 
 // Parameters
-param location string
+param location string // Location for App Service and other resources (e.g., Canada Central)
+param sqlLocation string // Location for SQL Server (e.g., East US)
 param appServiceName string = 'launchpad-appsvc'
 param sqlServerName string = 'launchpad-sqlsrv'
 param sqlDbName string = 'launchpaddb'
@@ -28,7 +29,7 @@ module sqlDb 'sqlDatabase.bicep' = {
   params: {
     name: sqlServerName
     databaseName: sqlDbName
-    location: location
+    location: sqlLocation // SQL in US region
     administratorLogin: sqlAdminUser
     administratorLoginPassword: sqlAdminPassword
   }

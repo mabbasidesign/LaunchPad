@@ -94,3 +94,7 @@ client/node_modules/
 client/dist/
 client/.env.local
 client/.env.*.local
+
+# Azure deployment files with credentials
+infra/deploy.ps1
+infra/main.parameters.json
