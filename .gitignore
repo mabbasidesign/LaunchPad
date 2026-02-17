@@ -88,3 +88,9 @@ secrets.json
 
 # Ignore LaunchPad assembly info cache
 obj/**/*.cache
+
+# React/Node
+client/node_modules/
+client/dist/
+client/.env.local
+client/.env.*.local
