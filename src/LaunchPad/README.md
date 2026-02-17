@@ -667,35 +667,79 @@ curl -X GET https://localhost:5001/api/v1.0/books \
 3. Run migrations: `dotnet ef database update`
 4. Start the API: `dotnet run`
 
-## Deployment
-- Use Bicep files in `infra/` for Azure resource provisioning
-- Deploy with: `az deployment group create ...`
-- Ensure Redis and logging storage are provisioned for production scenarios
+## Local Development
 
-## Azure Bicep Infrastructure
+### Running the API
+```bash
+cd src/LaunchPad
+dotnet run
+# API: https://localhost:5001
+# Swagger: https://localhost:5001/swagger
+```
 
-This project uses Azure Bicep files for infrastructure as code:
+### Running the Frontend
+```bash
+cd client
+npm install
+npm run dev
+# React: http://localhost:5173
+```
 
-- `infra/resourceGroup.bicep`: Creates Azure resource groups in specified regions.
-- `infra/main.bicep`: Entry point for deploying all Azure resources. Parameters include location, App Service, SQL Server, database, admin credentials, and SKU.
-- `infra/appService.bicep`: Deploys Azure App Service Plan and Web App with managed identity and secure connection to Azure SQL.
-- `infra/sqlDatabase.bicep`: Deploys Azure SQL Server and database with admin credentials, collation, and size settings.
+### Database Setup
+1. Configure connection string in `appsettings.json`
+2. Run migrations: `dotnet ef database update`
+3. Database will be created automatically
 
-### Typical Deployment Steps
-1. Create resource group(s) with `az group create`.
-2. Deploy resources using `az deployment group create` with `infra/main.bicep` and required parameters.
-3. App Service connects securely to SQL Database using managed identity.
+## Azure Deployment
 
-### Example Bicep Parameters
-- `location`: Azure region (e.g., westus)
-- `appServiceName`: Name for App Service
-- `sqlServerName`: Name for SQL Server
-- `sqlDbName`: Name for SQL Database
+### Infrastructure as Code (Bicep)
+
+This project uses Azure Bicep for infrastructure deployment:
+
+- `infra/main.bicep`: Entry point for deploying all Azure resources
+- `infra/appService.bicep`: Deploys Azure App Service Plan and Web App
+- `infra/sqlDatabase.bicep`: Deploys Azure SQL Server and Database
+- `infra/resourceGroup.bicep`: Creates Azure resource groups
+
+### Deployment Steps
+
+1. **Create Resource Group:**
+```bash
+az group create --name launchpad-rg --location canadacentral
+```
+
+2. **Deploy Infrastructure:**
+```bash
+az deployment group create \
+  --resource-group launchpad-rg \
+  --template-file infra/main.bicep \
+  --parameters location=canadacentral \
+               sqlLocation=eastus \
+               sqlAdminUser=sqladmin \
+               sqlAdminPassword='YourSecurePassword123!'
+```
+
+3. **Deploy Application:**
+```bash
+# Publish backend
+dotnet publish -c Release -o ./publish
+
+# Deploy to App Service
+az webapp deploy \
+  --resource-group launchpad-rg \
+  --name launchpad-appsvc \
+  --src-path ./publish
+```
+
+### Bicep Parameters
+- `location`: Azure region for App Service (e.g., canadacentral)
+- `sqlLocation`: Azure region for SQL Server (e.g., eastus)
+- `appServiceName`: Name for App Service (default: launchpad-appsvc)
+- `sqlServerName`: Name for SQL Server (default: launchpad-sqlsrv)
+- `sqlDbName`: Database name (default: launchpaddb)
 - `sqlAdminUser`: SQL admin username
-- `sqlAdminPassword`: SQL admin password
-- `appServiceSku`: App Service SKU (e.g., B1)
-
-See the `infra/` folder for full Bicep templates and customization options.
+- `sqlAdminPassword`: SQL admin password (secure parameter)
+- `appServiceSku`: App Service SKU (default: F1 free tier)
 
 ## Project Files
 

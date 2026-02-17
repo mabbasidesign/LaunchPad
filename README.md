@@ -1,6 +1,6 @@
-# LaunchPad - Full Stack API
+# LaunchPad - Full Stack Application
 
-A modern, pragmatic .NET API with clean architecture, comprehensive testing, and Azure deployment ready.
+A modern, pragmatic full-stack application with .NET 8 backend API and React TypeScript frontend, featuring clean architecture, comprehensive testing, and Azure cloud deployment.
 
 ## 🚀 Quick Start
 
@@ -17,12 +17,13 @@ dotnet run
 # Swagger UI: https://localhost:5001/swagger
 ```
 
-### Run Frontend (Coming soon)
+### Run Frontend
 ```bash
 cd client
 npm install
 npm run dev
-# React runs on http://localhost:5173
+# React app runs on http://localhost:5173
+# Features Material-UI with full CRUD operations
 ```
 
 ### Run Tests
@@ -74,6 +75,13 @@ LaunchPad/ (monorepo)
 - ✅ **Rate Limiting** - Built-in protection
 - ✅ **CORS** - Configured for frontend access
 
+### Frontend
+- ✅ **React 18** - Modern TypeScript with hooks
+- ✅ **Material-UI** - Professional design system
+- ✅ **Vite** - Lightning-fast dev server and builds
+- ✅ **Full CRUD** - Complete book management interface
+- ✅ **Type-Safe** - End-to-end TypeScript
+
 ### DevOps
 - ✅ **Infrastructure as Code** - Azure Bicep templates
 - ✅ **Azure Ready** - App Service, SQL Database
@@ -108,7 +116,8 @@ Response
 - **[Full API Documentation](./src/LaunchPad/README.md)** - Detailed endpoints, models, and patterns
 - **[CQRS Architecture](./src/LaunchPad/README.md#architecture-cqrs-with-mediatr)** - How commands and queries work
 - **[Testing Guide](./src/LaunchPad/README.md#testing)** - Run tests and add more
-- **[Deployment](./src/LaunchPad/README.md#deployment)** - Deploy to Azure
+- **[Frontend Documentation](./client/README.md)** - React app setup and features
+- **[Azure Deployment](./src/LaunchPad/README.md#azure-bicep-infrastructure)** - Deploy to Azure
 
 ---
 
@@ -171,15 +180,17 @@ DELETE /api/v1.0/books/{id} - Delete book
 
 ### Frontend
 - **Framework:** React 18 + TypeScript
+- **UI Library:** Material-UI (MUI)
 - **Build Tool:** Vite
 - **HTTP Client:** Fetch API
 - **State:** React Hooks
+- **Routing:** React Router
 
 ### DevOps
 - **Cloud:** Microsoft Azure
 - **IaC:** Azure Bicep
 - **CI/CD:** Azure DevOps
-- **VCS:** GitHub
+- **VCS:** Git/GitHub
 
 ---
 
@@ -187,11 +198,26 @@ DELETE /api/v1.0/books/{id} - Delete book
 
 ### To Azure
 ```bash
-# Update infra/main.bicep with your parameters
+# Deploy infrastructure
 az deployment group create \
-  --resource-group MyResourceGroup \
+  --resource-group launchpad-rg \
   --template-file infra/main.bicep \
-  --parameters location=eastus
+  --parameters location=canadacentral sqlLocation=eastus
+
+# Deploy application
+dotnet publish -c Release
+az webapp deploy --resource-group launchpad-rg --name launchpad-appsvc
+```
+
+### Local Development
+```bash
+# Backend
+cd src/LaunchPad
+dotnet run
+
+# Frontend
+cd client
+npm run dev
 ```
 
 ### Environment Variables
@@ -204,12 +230,13 @@ JWT_SECRET=...
 
 ## 📈 What's Next
 
-- [ ] Add React frontend with login/book management
+- [ ] Add user authentication UI in React
 - [ ] Add pagination to book list
+- [ ] Add search and filtering
 - [ ] Add Redis caching
-- [ ] Deploy to Azure with CI/CD
 - [ ] Add integration tests
-- [ ] Performance monitoring
+- [ ] Add Docker compose for local development
+- [ ] Set up CI/CD pipeline for Azure
 
 ---
 
@@ -246,4 +273,4 @@ Questions or improvements? Open an issue or PR.
 
 ---
 
-**Last Updated:** February 16, 2026
+**Last Updated:** February 17, 2026
