@@ -62,26 +62,38 @@ namespace LaunchPad.Services
             return null;
         }
 
+        public async Task<bool> ExistsAsync(int id)
+        {
+            // Fast existence check without loading full entity
+            return await _context.Books.AsNoTracking().AnyAsync(b => b.Id == id);
+        }
+
         public async Task Add(Book book)
         {
             _context.Books.Add(book);
             await _context.SaveChangesAsync();
+            // Invalidate cache on add
+            await _cache.RemoveAsync("books_all");
         }
 
         public async Task Update(Book book)
         {
             _context.Books.Update(book);
             await _context.SaveChangesAsync();
+            // Invalidate cache on update
+            var cacheKey = $"book_{book.Id}";
+            await _cache.RemoveAsync(cacheKey);
+            await _cache.RemoveAsync("books_all");
         }
 
         public async Task Delete(int id)
         {
-            var book = await _context.Books.FindAsync(id);
-            if (book != null)
-            {
-                _context.Books.Remove(book);
-                await _context.SaveChangesAsync();
-            }
+            // Use ExecuteDeleteAsync for efficient direct deletion without loading the entity
+            await _context.Books.Where(b => b.Id == id).ExecuteDeleteAsync();
+            // Invalidate cache
+            var cacheKey = $"book_{id}";
+            await _cache.RemoveAsync(cacheKey);
+            await _cache.RemoveAsync("books_all");
         }
     }
 }

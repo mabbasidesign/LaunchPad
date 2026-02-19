@@ -13,6 +13,16 @@ namespace LaunchPad.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            
+            // Configure indexes for frequently queried columns
+            modelBuilder.Entity<Book>()
+                .HasIndex(b => b.Id)
+                .IsUnique();
+            
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Username)
+                .IsUnique();
+            
             modelBuilder.Entity<Book>().HasData(
                 new Book { Id = 1, Title = "The Pragmatic Programmer", Author = "Andrew Hunt, David Thomas", ISBN = "978-0201616224", Price = 42.99M, Stock = 10 },
                 new Book { Id = 2, Title = "Clean Code", Author = "Robert C. Martin", ISBN = "978-0132350884", Price = 37.99M, Stock = 8 },

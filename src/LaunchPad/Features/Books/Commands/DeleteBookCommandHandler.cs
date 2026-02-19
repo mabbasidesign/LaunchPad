@@ -28,8 +28,9 @@ namespace LaunchPad.Features.Books.Commands
                     throw new ArgumentException("Book ID must be greater than 0", nameof(request.Id));
                 }
 
-                var book = await _bookRepository.GetById(request.Id);
-                if (book == null)
+                // Check existence with efficient query (no full entity load)
+                var exists = await _bookRepository.ExistsAsync(request.Id);
+                if (!exists)
                 {
                     _logger.LogWarning("[COMMAND: DeleteBook] Book not found for ID: {BookId}", request.Id);
                     throw new KeyNotFoundException($"Book with ID {request.Id} not found");
@@ -38,8 +39,8 @@ namespace LaunchPad.Features.Books.Commands
                 await _bookRepository.Delete(request.Id);
 
                 stopwatch.Stop();
-                _logger.LogInformation("[COMMAND: DeleteBook] Book deleted successfully. ID: {BookId}, Title: {Title}, Duration: {Duration}ms",
-                    request.Id, book.Title, stopwatch.ElapsedMilliseconds);
+                _logger.LogInformation("[COMMAND: DeleteBook] Book deleted successfully. ID: {BookId}, Duration: {Duration}ms",
+                    request.Id, stopwatch.ElapsedMilliseconds);
 
                 return Unit.Value;
             }

@@ -17,7 +17,7 @@ namespace LaunchPad.Services
 
         public async Task<User?> ValidateUserAsync(string username, string password)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+            var user = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Username == username);
             if (user == null) return null;
             if (user.PasswordHash != HashPassword(password)) return null;
             return user;
