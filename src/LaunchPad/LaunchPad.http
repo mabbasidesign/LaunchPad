@@ -1,6 +1,110 @@
-@LaunchPad_HostAddress = http://localhost:5203
+@baseUrl = http://localhost:5203
+@contentType = application/json
 
-GET {{LaunchPad_HostAddress}}/weatherforecast/
-Accept: application/json
+### Variables
+@username = testuser
+@password = TestPass123!
+@token = 
+
+### Test 1: Register a new user
+POST {{baseUrl}}/api/register
+Content-Type: {{contentType}}
+
+{
+  "username": "{{username}}",
+  "password": "{{password}}"
+}
+
+###
+
+### Test 2: Login to get JWT token
+POST {{baseUrl}}/api/auth/login
+Content-Type: {{contentType}}
+
+{
+  "username": "{{username}}",
+  "password": "{{password}}"
+}
+
+###
+
+### Test 3: Get all books with pagination - No Auth Required
+GET {{baseUrl}}/api/v1.0/books?pageNumber=1&pageSize=10
+Accept: {{contentType}}
+
+###
+
+### Test 4: Create a new book - Requires Auth
+POST {{baseUrl}}/api/v1.0/books
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+{
+  "id": 0,
+  "title": "The Clean Coder",
+  "author": "Robert C. Martin",
+  "isbn": "978-0132350884",
+  "price": 39.99,
+  "stock": 15,
+  "year": 2011
+}
+
+###
+
+### Test 5: Get book by ID - Requires Auth
+GET {{baseUrl}}/api/v1.0/books/1
+Accept: {{contentType}}
+Authorization: Bearer {{token}}
+
+###
+
+### Test 6: Update a book - Requires Auth
+PUT {{baseUrl}}/api/v1.0/books/1
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+{
+  "id": 1,
+  "title": "The Clean Coder (Updated)",
+  "author": "Robert C. Martin",
+  "isbn": "978-0132350884",
+  "price": 45.99,
+  "stock": 20,
+  "year": 2011
+}
+
+###
+
+### Test 7: Delete a book - Requires Auth
+DELETE {{baseUrl}}/api/v1.0/books/1
+Authorization: Bearer {{token}}
+
+###
+
+### Test 8: Test pagination with page 2
+GET {{baseUrl}}/api/v1.0/books?pageNumber=2&pageSize=5
+Accept: {{contentType}}
+
+###
+
+### Test 9: Test invalid input - Missing required fields
+POST {{baseUrl}}/api/register
+Content-Type: {{contentType}}
+
+{
+  "username": "",
+  "password": ""
+}
+
+###
+
+### Test 10: Test weak password validation
+POST {{baseUrl}}/api/register
+Content-Type: {{contentType}}
+
+{
+  "username": "weakpass",
+  "password": "weak123"
+}
 
 ###
