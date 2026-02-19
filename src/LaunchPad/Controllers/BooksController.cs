@@ -29,19 +29,20 @@ namespace LaunchPad.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<BookDto>>> GetBooks()
+        public async Task<ActionResult<PaginatedResultDto<BookDto>>> GetBooks([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             var username = User?.Identity?.Name ?? "Anonymous";
-            _logger.LogInformation("[GET_BOOKS] Request started. User: {Username}", username);
+            _logger.LogInformation("[GET_BOOKS] Request started. User: {Username}, PageNumber: {PageNumber}, PageSize: {PageSize}", 
+                username, pageNumber, pageSize);
 
             try
             {
-                var query = new GetAllBooksQuery();
-                var bookDtos = await _mediator.Send(query);
+                var query = new GetAllBooksQuery(pageNumber, pageSize);
+                var result = await _mediator.Send(query);
 
-                _logger.LogInformation("[GET_BOOKS] Retrieved {BookCount} books. User: {Username}", 
-                    bookDtos.Count, username);
-                return Ok(bookDtos);
+                _logger.LogInformation("[GET_BOOKS] Retrieved {BookCount} books (Page {PageNumber}, Total {TotalCount}). User: {Username}", 
+                    result.Items.Count, result.PageNumber, result.TotalCount, username);
+                return Ok(result);
             }
             catch (Exception ex)
             {

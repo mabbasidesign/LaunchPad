@@ -5,9 +5,9 @@ using LaunchPad.Services;
 namespace LaunchPad.Features.Books.Queries
 {
     /// <summary>
-    /// Handler for GetAllBooksQuery. Retrieves all books from the repository.
+    /// Handler for GetAllBooksQuery. Retrieves all books from the repository with pagination support.
     /// </summary>
-    public class GetAllBooksQueryHandler : IRequestHandler<GetAllBooksQuery, List<BookDto>>
+    public class GetAllBooksQueryHandler : IRequestHandler<GetAllBooksQuery, PaginatedResultDto<BookDto>>
     {
         private readonly IBookRepository _bookRepository;
         private readonly ILogger<GetAllBooksQueryHandler> _logger;
@@ -18,12 +18,13 @@ namespace LaunchPad.Features.Books.Queries
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<List<BookDto>> Handle(GetAllBooksQuery request, CancellationToken cancellationToken)
+        public async Task<PaginatedResultDto<BookDto>> Handle(GetAllBooksQuery request, CancellationToken cancellationToken)
         {
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
             try
             {
-                var books = await _bookRepository.GetAll();
+                var (books, totalCount) = await _bookRepository.GetAllPaginatedAsync(request.PageNumber, request.PageSize);
+                
                 var bookDtos = books.Select(b => new BookDto
                 {
                     Id = b.Id,
@@ -33,10 +34,16 @@ namespace LaunchPad.Features.Books.Queries
                 }).ToList();
 
                 stopwatch.Stop();
-                _logger.LogInformation("[QUERY: GetAllBooks] Retrieved {BookCount} books in {Duration}ms", 
-                    bookDtos.Count, stopwatch.ElapsedMilliseconds);
+                _logger.LogInformation("[QUERY: GetAllBooks] Retrieved {BookCount} books (Page {PageNumber}, Size {PageSize}, Total {TotalCount}) in {Duration}ms", 
+                    bookDtos.Count, request.PageNumber, request.PageSize, totalCount, stopwatch.ElapsedMilliseconds);
 
-                return bookDtos;
+                return new PaginatedResultDto<BookDto>
+                {
+                    Items = bookDtos,
+                    PageNumber = request.PageNumber,
+                    PageSize = request.PageSize,
+                    TotalCount = totalCount
+                };
             }
             catch (Exception ex)
             {

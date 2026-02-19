@@ -33,55 +33,59 @@ namespace LaunchPad.Tests.Handlers
                 new Book { Id = 2, Title = "Book 2", Author = "Author 2", Year = 2025 }
             };
 
-            _mockBookRepository.Setup(x => x.GetAll())
-                .ReturnsAsync(books);
+            _mockBookRepository.Setup(x => x.GetAllPaginatedAsync(It.IsAny<int>(), It.IsAny<int>()))
+                .ReturnsAsync((books, 2));
 
             var handler = new GetAllBooksQueryHandler(_mockBookRepository.Object, _mockLogger.Object);
-            var query = new GetAllBooksQuery();
+            var query = new GetAllBooksQuery(1, 10);
 
             // Act
             var result = await handler.Handle(query, CancellationToken.None);
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(2, result.Count);
-            Assert.Equal("Book 1", result[0].Title);
-            Assert.Equal("Book 2", result[1].Title);
+            Assert.Equal(2, result.Items.Count);
+            Assert.Equal("Book 1", result.Items[0].Title);
+            Assert.Equal("Book 2", result.Items[1].Title);
+            Assert.Equal(1, result.PageNumber);
+            Assert.Equal(10, result.PageSize);
+            Assert.Equal(2, result.TotalCount);
         }
 
         [Fact]
         public async Task Handle_ReturnsEmptyListWhenNoBooks()
         {
             // Arrange
-            _mockBookRepository.Setup(x => x.GetAll())
-                .ReturnsAsync(new List<Book>());
+            _mockBookRepository.Setup(x => x.GetAllPaginatedAsync(It.IsAny<int>(), It.IsAny<int>()))
+                .ReturnsAsync((new List<Book>(), 0));
 
             var handler = new GetAllBooksQueryHandler(_mockBookRepository.Object, _mockLogger.Object);
-            var query = new GetAllBooksQuery();
+            var query = new GetAllBooksQuery(1, 10);
 
             // Act
             var result = await handler.Handle(query, CancellationToken.None);
 
             // Assert
             Assert.NotNull(result);
-            Assert.Empty(result);
+            Assert.Empty(result.Items);
+            Assert.Equal(0, result.TotalCount);
         }
 
         [Fact]
-        public async Task Handle_CallsRepositoryGetAll()
+        public async Task Handle_CallsRepositoryGetAllPaginated()
         {
             // Arrange
-            _mockBookRepository.Setup(x => x.GetAll())
-                .ReturnsAsync(new List<Book>());
+            _mockBookRepository.Setup(x => x.GetAllPaginatedAsync(It.IsAny<int>(), It.IsAny<int>()))
+                .ReturnsAsync((new List<Book>(), 0));
 
             var handler = new GetAllBooksQueryHandler(_mockBookRepository.Object, _mockLogger.Object);
-            var query = new GetAllBooksQuery();
+            var query = new GetAllBooksQuery(2, 5);
 
             // Act
             await handler.Handle(query, CancellationToken.None);
 
             // Assert
-            _mockBookRepository.Verify(x => x.GetAll(), Times.Once);
+            _mockBookRepository.Verify(x => x.GetAllPaginatedAsync(2, 5), Times.Once);
         }
     }
 }

@@ -95,5 +95,21 @@ namespace LaunchPad.Services
             await _cache.RemoveAsync(cacheKey);
             await _cache.RemoveAsync("books_all");
         }
+
+        public async Task<(List<Book> books, int totalCount)> GetAllPaginatedAsync(int pageNumber, int pageSize)
+        {
+            // Get total count
+            var totalCount = await _context.Books.AsNoTracking().CountAsync();
+
+            // Get paginated books
+            var books = await _context.Books
+                .AsNoTracking()
+                .OrderBy(b => b.Id)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (books, totalCount);
+        }
     }
 }
