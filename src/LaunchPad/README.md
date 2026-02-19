@@ -105,22 +105,73 @@ All handlers include `Stopwatch` logging to track execution duration:
 [COMMAND: Login] User logged in successfully. UserID: 1, Username: Admin, Duration: 943ms
 ```
 
-## DDD Practices (Planned)
-The following Domain-Driven Design patterns are planned for future implementation:
-- Rich domain models with business logic
-- Repositories for aggregate persistence
-- Domain services for cross-entity logic
-- DTOs for API input/output
-- Domain events for state changes
-- Separation of domain, application, and infrastructure layers
+## DDD & Architecture Patterns
 
-## SQL Optimization (Planned)
-The following SQL optimization strategies are planned for future implementation:
-- Connection pooling
-- Index tuning
-- Stored procedures and batching
-- Table partitioning
-- Query pagination and AsNoTracking
+### Implemented Patterns
+✅ **CQRS (Command Query Responsibility Segregation)** - Separate read and write operation handlers  
+✅ **Repository Pattern** - Data access abstraction layer for Books and Users  
+✅ **Dependency Injection** - Loose coupling with interface-based design  
+✅ **Data Transfer Objects (DTOs)** - API input/output decoupling from domain models  
+✅ **Service Layer** - Business logic separated from controllers  
+✅ **MediatR Pipeline** - Centralized request handling and cross-cutting concerns
+
+### Planned Enhancements
+- Rich domain models with business logic embedded
+- Domain services for cross-entity operations
+- Domain events for state change notifications
+- Aggregate roots with bounded contexts
+- Value objects for domain primitives
+
+## SQL Optimization
+
+The following SQL optimization strategies have been implemented:
+- **Database Indexes** - Unique indexes on `Book.Id` and `User.Username` for faster lookups
+- **AsNoTracking()** - Read-only queries disable change tracking to reduce memory overhead
+- **ExecuteDeleteAsync()** - Direct database deletion without loading entities, eliminating unnecessary round-trips
+- **ExistsAsync()** - Lightweight existence checks using `AnyAsync()` instead of loading full entities
+- **Distributed Caching** - Redis cache for book queries (5-minute expiration) with automatic invalidation on writes
+- **Parameterized Queries** - All queries use EF Core LINQ (no raw SQL) to prevent SQL injection
+- **Pagination** - Query limits with `Skip()` and `Take()` for efficient large result sets
+
+### Performance Improvements
+- Reduced database round-trips through efficient query patterns
+- Decreased memory allocation by avoiding unnecessary entity tracking
+- Faster authentication checks with index on username
+- Improved response times on read-heavy operations through distributed caching
+
+## Pagination
+
+Pagination support is built into the Books API for efficient handling of large datasets:
+
+### Implementation
+- **Query-based**: Uses `Skip()` and `Take()` for server-side pagination
+- **Generic DTO**: `PaginatedResultDto<T>` contains both data and metadata
+- **Computed Properties**: `TotalPages`, `HasPreviousPage`, `HasNextPage` calculated automatically
+- **Default Parameters**: `pageNumber=1`, `pageSize=10` for safe defaults
+
+### Usage Example
+```
+GET /api/v1.0/books?pageNumber=2&pageSize=20
+```
+
+### Response Structure
+```json
+{
+  "items": [{...book data...}],
+  "pageNumber": 2,
+  "pageSize": 20,
+  "totalCount": 150,
+  "totalPages": 8,
+  "hasPreviousPage": true,
+  "hasNextPage": true
+}
+```
+
+### Benefits
+✅ Reduces memory overhead on large datasets  
+✅ Faster page loads with smaller result sets  
+✅ Client-friendly pagination metadata  
+✅ Efficient database queries with automatic limiting  
 
 ## Testing
 
@@ -232,8 +283,25 @@ ModelState validation occurs in controllers before MediatR dispatch.
   - Response: 401 Unauthorized if credentials are invalid
 
 ### Books (All endpoints require JWT Authorization)
-- **GET** `/api/v1.0/books` - Get all books
-  - Response: 200 OK with list of BookDto objects
+- **GET** `/api/v1.0/books?pageNumber=1&pageSize=10` - Get all books with pagination
+  - Query Parameters:
+    - `pageNumber` (optional, default: 1) - Page number for pagination
+    - `pageSize` (optional, default: 10) - Number of items per page
+  - Response: 200 OK with paginated results
+  - Response Example:
+    ```json
+    {
+      "items": [
+        { "id": 1, "title": "Book 1", "author": "Author 1", "year": 2024 }
+      ],
+      "pageNumber": 1,
+      "pageSize": 10,
+      "totalCount": 42,
+      "totalPages": 5,
+      "hasPreviousPage": false,
+      "hasNextPage": true
+    }
+    ```
 
 - **GET** `/api/v1.0/books/{id}` - Get book by ID
   - Response: 200 OK with BookDto or 404 Not Found
@@ -258,6 +326,33 @@ ModelState validation occurs in controllers before MediatR dispatch.
 - JWT Authentication with Bearer tokens
 - Swagger/OpenAPI documentation
 - Structured logging with Serilog
+
+## Security
+
+### SQL Injection Prevention
+✅ **Fully Protected** - All database queries use Entity Framework Core LINQ queries, which generate parameterized SQL automatically:
+- No raw SQL queries (`FromSql`, `ExecuteSql`)
+- No string concatenation in queries
+- No dynamic query building
+- All user inputs validated before database operations
+
+### Input Validation
+- Data annotations on all DTOs and models (Required, StringLength, Range, RegularExpression)
+- Custom `PasswordComplexityAttribute` for strong password enforcement
+- Controller-level ModelState validation before MediatR dispatch
+- Type-safe query parameters with integer validation
+
+### Authentication & Authorization
+- JWT Bearer tokens with 1-hour expiration
+- Passwords hashed with SHA256
+- Role-based authorization on protected endpoints
+- Sensitive data (tokens, passwords) never logged
+
+### Best Practices
+✅ Asynchronous endpoints (no blocking operations)  
+✅ Principle of least privilege (repository pattern)  
+✅ Secure defaults (validation enforced, logging audited)  
+✅ No hardcoded secrets (configuration-based)  
 
 ## Data Models
 
