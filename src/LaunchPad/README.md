@@ -16,6 +16,7 @@ LaunchPad is a scalable, high-performance .NET API built with modern best practi
 - Health checks and monitoring
 - JWT Authentication with Bearer tokens
 - Custom validation attributes (password complexity)
+- Orders with totals, tax, discounts, and aggregation queries
 
 ## Project Structure
 
@@ -88,6 +89,9 @@ Queries retrieve data without modifying state and return DTOs or collections.
 **Book Queries:**
 - `GetAllBooksQuery` → `GetAllBooksQueryHandler` → Returns all books
 - `GetBookByIdQuery` → `GetBookByIdQueryHandler` → Returns single book by ID
+
+**Order Queries:**
+- Orders use service-based queries for summary and top items aggregation
 
 ### Benefits
 
@@ -317,6 +321,25 @@ ModelState validation occurs in controllers before MediatR dispatch.
 - **DELETE** `/api/v1.0/books/{id}` - Delete a book
   - Response: 204 No Content or 404 Not Found
 
+### Orders (All endpoints require JWT Authorization)
+- **POST** `/api/v1.0/orders` - Create a new order (totals computed server-side)
+  - Request: `CreateOrderRequestDto` with items
+  - Response: 201 Created with OrderDto
+
+- **GET** `/api/v1.0/orders/{id}` - Get order by ID
+  - Response: 200 OK with OrderDto or 404 Not Found
+
+- **GET** `/api/v1.0/orders?pageNumber=1&pageSize=10` - Get orders (paginated)
+  - Response: 200 OK with list of OrderDto
+
+- **GET** `/api/v1.0/orders/summary` - Aggregated order totals
+  - Query Params: `fromDate`, `toDate` (optional)
+  - Response: 200 OK with OrderSummaryDto
+
+- **GET** `/api/v1.0/orders/top-items?limit=5` - Top items by revenue
+  - Query Params: `limit` (optional, default: 5)
+  - Response: 200 OK with list of TopItemDto
+
 ## Middleware
 
 - **Exception Handling Middleware** - Centralized error handling with structured error responses (ErrorResponse model)
@@ -380,6 +403,35 @@ public class Book
 }
 ```
 
+### Order
+```csharp
+public class Order
+{
+  public int Id { get; set; }
+  public DateTime CreatedAt { get; set; }
+  public decimal Subtotal { get; set; }
+  public decimal DiscountPercent { get; set; }
+  public decimal DiscountAmount { get; set; }
+  public decimal TaxRate { get; set; }
+  public decimal TaxAmount { get; set; }
+  public decimal Total { get; set; }
+  public ICollection<OrderItem> Items { get; set; }
+}
+```
+
+### OrderItem
+```csharp
+public class OrderItem
+{
+  public int Id { get; set; }
+  public int OrderId { get; set; }
+  public string ProductName { get; set; }
+  public int Quantity { get; set; }
+  public decimal UnitPrice { get; set; }
+  public decimal LineTotal { get; set; }
+}
+```
+
 ## Data Transfer Objects (DTOs)
 
 ### BookDto
@@ -414,6 +466,35 @@ public class LoginRequestDto
 {
     public string Username { get; set; }
     public string Password { get; set; }
+}
+```
+
+### Order DTOs
+```csharp
+public class CreateOrderRequestDto
+{
+  public decimal DiscountPercent { get; set; }
+  public List<CreateOrderItemRequestDto> Items { get; set; }
+}
+
+public class CreateOrderItemRequestDto
+{
+  public string ProductName { get; set; }
+  public int Quantity { get; set; }
+  public decimal UnitPrice { get; set; }
+}
+
+public class OrderDto
+{
+  public int Id { get; set; }
+  public DateTime CreatedAt { get; set; }
+  public decimal Subtotal { get; set; }
+  public decimal DiscountPercent { get; set; }
+  public decimal DiscountAmount { get; set; }
+  public decimal TaxRate { get; set; }
+  public decimal TaxAmount { get; set; }
+  public decimal Total { get; set; }
+  public List<OrderItemDto> Items { get; set; }
 }
 ```
 
