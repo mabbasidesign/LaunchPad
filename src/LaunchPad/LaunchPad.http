@@ -108,3 +108,84 @@ Content-Type: {{contentType}}
 }
 
 ###
+
+### Test 11: Create order - Requires Auth
+POST {{baseUrl}}/api/v1.0/orders
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+{
+  "discountPercent": 0.1,
+  "items": [
+    {
+      "productName": "Notebook",
+      "quantity": 2,
+      "unitPrice": 12.50
+    },
+    {
+      "productName": "Pen",
+      "quantity": 5,
+      "unitPrice": 1.25
+    }
+  ]
+}
+
+###
+
+### Test 12: Get order by ID - Requires Auth
+GET {{baseUrl}}/api/v1.0/orders/1
+Accept: {{contentType}}
+Authorization: Bearer {{token}}
+
+###
+
+### Test 13: Get orders (paginated) - Requires Auth
+GET {{baseUrl}}/api/v1.0/orders?pageNumber=1&pageSize=10
+Accept: {{contentType}}
+Authorization: Bearer {{token}}
+
+###
+
+### Test 14: Get orders summary - Requires Auth
+GET {{baseUrl}}/api/v1.0/orders/summary
+Accept: {{contentType}}
+Authorization: Bearer {{token}}
+
+###
+
+### Test 15: Get top items - Requires Auth
+GET {{baseUrl}}/api/v1.0/orders/top-items?limit=5
+Accept: {{contentType}}
+Authorization: Bearer {{token}}
+
+###
+
+### Test 16: Order validation - empty items
+POST {{baseUrl}}/api/v1.0/orders
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+{
+  "discountPercent": 0.1,
+  "items": []
+}
+
+###
+
+### Test 17: Order validation - invalid discount percent
+POST {{baseUrl}}/api/v1.0/orders
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+{
+  "discountPercent": 1.5,
+  "items": [
+    {
+      "productName": "Sticker",
+      "quantity": 1,
+      "unitPrice": 0.99
+    }
+  ]
+}
+
+###

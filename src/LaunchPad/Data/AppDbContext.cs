@@ -9,6 +9,8 @@ namespace LaunchPad.Data
 
         public DbSet<Book> Books { get; set; }
         public DbSet<LaunchPad.Models.User> Users { get; set; }
+        public DbSet<Order> Orders { get; set; }
+        public DbSet<OrderItem> OrderItems { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -22,6 +24,18 @@ namespace LaunchPad.Data
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Username)
                 .IsUnique();
+
+            modelBuilder.Entity<Order>()
+                .HasIndex(o => o.CreatedAt);
+
+            modelBuilder.Entity<OrderItem>()
+                .HasIndex(i => i.OrderId);
+
+            modelBuilder.Entity<Order>()
+                .HasMany(o => o.Items)
+                .WithOne(i => i.Order)
+                .HasForeignKey(i => i.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
             
             modelBuilder.Entity<Book>().HasData(
                 new Book { Id = 1, Title = "The Pragmatic Programmer", Author = "Andrew Hunt, David Thomas", ISBN = "978-0201616224", Price = 42.99M, Stock = 10 },
