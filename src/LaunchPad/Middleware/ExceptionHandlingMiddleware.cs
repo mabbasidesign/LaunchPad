@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 
 namespace LaunchPad.Middleware
 {
@@ -45,6 +46,12 @@ namespace LaunchPad.Middleware
 
             switch (exception)
             {
+                case DbUpdateConcurrencyException dbConcurrencyEx:
+                    context.Response.StatusCode = (int)HttpStatusCode.Conflict;
+                    response.Message = "Concurrency conflict occurred.";
+                    response.Details = "The record has been modified by another user. Please refresh and try again.";
+                    break;
+
                 case ArgumentNullException argNullEx:
                     context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                     response.Message = "Invalid argument provided.";

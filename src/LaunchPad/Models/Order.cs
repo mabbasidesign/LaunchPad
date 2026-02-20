@@ -29,6 +29,9 @@ namespace LaunchPad.Models
         [Column(TypeName = "decimal(18,2)")]
         public decimal Total { get; set; }
 
+        [Timestamp]
+        public byte[] RowVersion { get; set; } = Array.Empty<byte>();
+
         public ICollection<OrderItem> Items { get; set; } = new List<OrderItem>();
     }
 }

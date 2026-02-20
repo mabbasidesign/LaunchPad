@@ -26,5 +26,8 @@ namespace LaunchPad.Models
 
         [Range(1000, 2100, ErrorMessage = "Year must be between 1000 and 2100.")]
         public int Year { get; set; }
+
+        [Timestamp]
+        public byte[] RowVersion { get; set; } = Array.Empty<byte>();
     }
 }

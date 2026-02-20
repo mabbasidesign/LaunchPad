@@ -14,5 +14,8 @@ namespace LaunchPad.Models
 
         [Required(ErrorMessage = "Password hash is required.")]
         public string PasswordHash { get; set; } = string.Empty;
+
+        [Timestamp]
+        public byte[] RowVersion { get; set; } = Array.Empty<byte>();
     }
 }
