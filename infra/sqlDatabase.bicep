@@ -6,6 +6,10 @@ param location string
 param administratorLogin string
 @secure()
 param administratorLoginPassword string
+param sqlSkuName string = 'Basic'
+param sqlSkuTier string = 'Basic'
+param sqlSkuCapacity int = 5
+param maxSizeBytes int = 2147483648
 
 resource sqlServer 'Microsoft.Sql/servers@2022-02-01-preview' = {
   name: name
@@ -20,9 +24,14 @@ resource sqlServer 'Microsoft.Sql/servers@2022-02-01-preview' = {
 resource sqlDb 'Microsoft.Sql/servers/databases@2022-02-01-preview' = {
   name: '${name}/${databaseName}'
   location: location
+  sku: {
+    name: sqlSkuName
+    tier: sqlSkuTier
+    capacity: sqlSkuCapacity
+  }
   properties: {
     collation: 'SQL_Latin1_General_CP1_CI_AS'
-    maxSizeBytes: 2147483648
+    maxSizeBytes: maxSizeBytes
     createMode: 'Default'
   }
 }

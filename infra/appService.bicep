@@ -3,6 +3,7 @@
 param name string
 param location string
 param skuName string = 'F1'
+param skuTier string = 'Free'
 param sqlServerName string
 param sqlDbName string
 
@@ -11,7 +12,7 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2022-03-01' = {
   location: location
   sku: {
     name: skuName
-    tier: skuName
+    tier: skuTier
     size: skuName
   }
   kind: 'app'

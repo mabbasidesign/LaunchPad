@@ -10,7 +10,12 @@ param sqlDbName string = 'launchpaddb'
 param sqlAdminUser string
 @secure()
 param sqlAdminPassword string
-param appServiceSku string = 'F1'
+param appServiceSkuName string = 'F1'
+param appServiceSkuTier string = 'Free'
+param sqlSkuName string = 'Basic'
+param sqlSkuTier string = 'Basic'
+param sqlSkuCapacity int = 5
+param sqlMaxSizeBytes int = 2147483648
 
 // Modules (to be created separately)
 module appService 'appService.bicep' = {
@@ -18,7 +23,8 @@ module appService 'appService.bicep' = {
   params: {
     name: appServiceName
     location: location
-    skuName: appServiceSku
+    skuName: appServiceSkuName
+    skuTier: appServiceSkuTier
     sqlServerName: sqlServerName
     sqlDbName: sqlDbName
   }
@@ -32,6 +38,10 @@ module sqlDb 'sqlDatabase.bicep' = {
     location: sqlLocation // SQL in US region
     administratorLogin: sqlAdminUser
     administratorLoginPassword: sqlAdminPassword
+    sqlSkuName: sqlSkuName
+    sqlSkuTier: sqlSkuTier
+    sqlSkuCapacity: sqlSkuCapacity
+    maxSizeBytes: sqlMaxSizeBytes
   }
 }
 
